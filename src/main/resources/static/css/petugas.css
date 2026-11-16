@@ -1,0 +1,6 @@
+.capacity-meter-card {
+    background-color: var(--color-primary-50);
+    border: 1px solid var(--color-primary-400);
+    border-radius: 16px;
+    padding: 20px;
+}

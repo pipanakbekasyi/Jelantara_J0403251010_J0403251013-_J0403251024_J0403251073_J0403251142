@@ -1,0 +1,515 @@
+/* ==========================================================================
+   JELANTARA DESIGN SYSTEM TOKENS (:root) - TANPA WARNA HIJAU SAMA SEKALI
+   ========================================================================== */
+:root {
+    --font-family-base: 'Poppins', sans-serif;
+
+    /* Primary Scale (Vibrant Yellow) */
+    --primary-50: #FFFBEB;
+    --primary-100: #FFF3C4;
+    --primary-200: #FCE588;
+    --primary-500: #FFCA00;
+    --primary-600: #E0B000;
+    --primary-800: #926008;
+
+    /* Secondary Scale (Warm Amber Yellow) */
+    --secondary-50: #FFF8EB;
+    --secondary-100: #FEEBC8;
+    --secondary-500: #F7B32E;
+    --secondary-600: #D99616;
+    --secondary-700: #B87B0A;
+
+    /* Neutral Scale */
+    --neutral-0: #FFFFFF;
+    --neutral-50: #FAFAFA;
+    --neutral-100: #F4F4F5;
+    --neutral-200: #E4E4E7;
+    --neutral-400: #A1A1AA;
+    --neutral-500: #71717A;
+    --neutral-900: #18181B;
+
+    /* Semantic Tokens (Tanpa Warna Hijau) */
+    --color-background: var(--neutral-0);
+    --color-surface: var(--neutral-0);
+    --color-text-primary: var(--neutral-900);
+    --color-text-secondary: var(--neutral-500);
+    --color-border: var(--neutral-200);
+
+    /* Success menggunakan Yellow-Gold Scale sesuai aturan Design System */
+    --color-success-bg: #FFFAE5;
+    --color-success-border: #FFCA00;
+    --color-success-text: #926008;
+
+    /* Warning & Error */
+    --color-warning: #D97706;
+    --color-error: #DC2626;
+    --color-error-bg: #FEF2F2;
+
+    /* Radius & Elevation */
+    --radius-sm: 4px;
+    --radius-md: 8px;
+    --radius-lg: 12px;
+    --radius-xl: 16px;
+    --radius-full: 9999px;
+
+    --shadow-sm: 0 1px 3px rgba(24, 24, 27, 0.06);
+    --shadow-md: 0 4px 12px rgba(24, 24, 27, 0.08);
+    --shadow-lg: 0 10px 25px rgba(24, 24, 27, 0.12);
+}
+
+/* Base Body */
+body {
+    font-family: var(--font-family-base);
+    background-color: var(--color-background);
+    color: var(--color-text-primary);
+    margin: 0;
+    padding: 0;
+    -webkit-font-smoothing: antialiased;
+}
+
+/* Navbar Putih Bersih dengan Border Halus */
+.navbar-jelantara {
+    background-color: var(--neutral-0);
+    border-bottom: 1px solid var(--color-border);
+    padding: 16px 0;
+}
+
+.brand-badge {
+    background-color: var(--primary-500);
+    color: var(--neutral-900);
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-md);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+}
+
+.brand-title {
+    letter-spacing: -0.3px;
+}
+
+/* Typography Hierarchy */
+.h1-jelantara {
+    font-size: 28px;
+    font-weight: 700;
+    line-height: 1.3;
+    color: var(--neutral-900);
+}
+
+.h2-jelantara {
+    font-size: 20px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--neutral-900);
+}
+
+.h3-jelantara {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--neutral-900);
+}
+
+.body-small {
+    font-size: 13px;
+    color: var(--color-text-secondary);
+}
+
+.caption-path {
+    font-size: 11px;
+    color: var(--neutral-400);
+}
+
+.desc-truncate {
+    max-width: 260px;
+}
+
+/* Card System di atas Latar Putih #FFFFFF */
+.card-jelantara {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+}
+
+.card-jelantara:hover {
+    box-shadow: var(--shadow-md);
+    border-color: var(--primary-200);
+}
+
+.card-detail-highlight {
+    background-color: var(--primary-50);
+    border-color: var(--primary-500);
+}
+
+/* Button System (#FFCA00 & #F7B32E dengan Teks Gelap #18181B) */
+.btn-jelantara-primary {
+    background-color: var(--primary-500);
+    color: var(--neutral-900);
+    font-weight: 600;
+    font-size: 14px;
+    min-height: 44px;
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-jelantara-primary:hover,
+.btn-jelantara-primary:focus {
+    background-color: var(--secondary-500);
+    color: var(--neutral-900);
+}
+
+.btn-jelantara-secondary {
+    background-color: var(--secondary-500);
+    color: var(--neutral-900);
+    font-weight: 600;
+    font-size: 14px;
+    min-height: 44px;
+    padding: 10px 20px;
+    border-radius: var(--radius-md);
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.2s ease;
+    text-decoration: none;
+}
+
+.btn-jelantara-secondary:hover {
+    background-color: var(--secondary-600);
+    color: var(--neutral-900);
+}
+
+.btn-search-pill {
+    border-radius: var(--radius-full);
+}
+
+.btn-jelantara-outline {
+    background-color: var(--neutral-0);
+    color: var(--neutral-900);
+    font-weight: 500;
+    font-size: 14px;
+    min-height: 44px;
+    padding: 10px 18px;
+    border-radius: var(--radius-md);
+    border: 1.5px solid var(--secondary-500);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-jelantara-outline:hover {
+    background-color: var(--primary-50);
+    color: var(--neutral-900);
+}
+
+.btn-jelantara-destructive {
+    background-color: var(--color-error-bg);
+    color: var(--color-error);
+    border: 1px solid #FECACA;
+    font-weight: 500;
+    font-size: 13px;
+    min-height: 38px;
+    padding: 6px 12px;
+    border-radius: var(--radius-md);
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+
+.btn-jelantara-destructive:hover {
+    background-color: var(--color-error);
+    color: var(--neutral-0);
+}
+
+/* Compact Action Buttons untuk Tabel & Panel */
+.btn-action-sm {
+    min-height: 38px;
+    padding: 6px 12px;
+}
+
+/* Form Controls dengan Ikon Kiri & Focus Ring Kuning #FFCA00 */
+.form-label-jelantara {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--neutral-900);
+    margin-bottom: 6px;
+}
+
+.input-icon-wrapper {
+    position: relative;
+}
+
+.input-icon-wrapper .lucide-icon-left {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--neutral-500);
+    width: 18px;
+    height: 18px;
+    pointer-events: none;
+}
+
+.form-control-jelantara {
+    height: 46px;
+    padding: 10px 14px 10px 42px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
+    font-size: 14px;
+    color: var(--neutral-900);
+    background-color: var(--neutral-0);
+    width: 100%;
+    transition: all 0.2s ease;
+}
+
+textarea.form-control-jelantara {
+    height: auto;
+    padding-top: 12px;
+    padding-left: 14px;
+}
+
+.form-control-jelantara:focus {
+    outline: none;
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px rgba(255, 202, 0, 0.28);
+}
+
+.form-control-jelantara[readonly] {
+    background-color: var(--neutral-100);
+    color: var(--neutral-500);
+}
+
+/* Search Input Pill */
+.search-pill-input {
+    height: 46px;
+    border-radius: var(--radius-full);
+    padding-left: 44px;
+    padding-right: 20px;
+    border: 1px solid var(--color-border);
+    font-size: 14px;
+    width: 100%;
+    transition: all 0.2s ease;
+}
+
+.search-pill-input:focus {
+    outline: none;
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 3px rgba(255, 202, 0, 0.25);
+}
+
+/* Badges & Category Pills */
+.badge-poin {
+    background-color: var(--primary-100);
+    color: var(--primary-800);
+    font-weight: 700;
+    font-size: 13px;
+    padding: 6px 12px;
+    border-radius: var(--radius-full);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.badge-step {
+    background-color: var(--primary-100);
+    color: var(--primary-800);
+    font-weight: 600;
+    font-size: 12px;
+    padding: 4px 12px;
+    border-radius: var(--radius-full);
+    display: inline-flex;
+    align-items: center;
+}
+
+.category-pill {
+    border-radius: var(--radius-full);
+    padding: 6px 16px;
+    font-size: 13px;
+    font-weight: 500;
+    border: 1px solid var(--color-border);
+    background-color: var(--neutral-0);
+    color: var(--color-text-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.category-pill.active,
+.category-pill:hover {
+    background-color: var(--primary-500);
+    color: var(--neutral-900);
+    border-color: var(--primary-500);
+    font-weight: 600;
+}
+
+/* Alert & Semantic Colors (Menggunakan Yellow-Gold Scale, Bukan Hijau) */
+.alert-jelantara-success {
+    background-color: var(--color-success-bg);
+    border: 1.5px solid var(--color-success-border);
+    color: var(--color-success-text);
+    border-radius: var(--radius-lg);
+    padding: 14px 18px;
+    font-weight: 500;
+}
+
+.alert-close-success {
+    color: var(--primary-800);
+}
+
+.alert-jelantara-error {
+    background-color: var(--color-error-bg);
+    border: 1.5px solid var(--color-error);
+    color: var(--color-error);
+    border-radius: var(--radius-lg);
+    padding: 14px 18px;
+    font-weight: 500;
+}
+
+.alert-close-error {
+    color: var(--color-error);
+}
+
+.text-warning-jelantara {
+    color: var(--color-warning);
+}
+
+/* Product Thumbnail & Icons */
+.product-img-box {
+    width: 56px;
+    height: 56px;
+    border-radius: var(--radius-md);
+    background-color: var(--primary-50);
+    border: 1px solid var(--primary-200);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    flex-shrink: 0;
+    color: var(--primary-800);
+}
+
+.icon-xs {
+    width: 14px;
+    height: 14px;
+}
+
+.icon-sm {
+    width: 16px;
+    height: 16px;
+}
+
+.icon-md {
+    width: 18px;
+    height: 18px;
+}
+
+.icon-empty-state {
+    width: 40px;
+    height: 40px;
+    color: var(--secondary-500);
+}
+
+/* Table Styling */
+.table-jelantara th {
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--color-text-secondary);
+    font-weight: 600;
+    border-bottom: 1px solid var(--color-border);
+    padding: 14px 16px;
+    background-color: var(--neutral-0);
+}
+
+.table-jelantara td {
+    padding: 16px;
+    vertical-align: middle;
+    border-bottom: 1px solid var(--color-border);
+    font-size: 14px;
+}
+
+/* Styling Input File Upload & Preview Gambar */
+.upload-box-jelantara {
+    border: 1.5px dashed var(--secondary-500);
+    background-color: var(--primary-50);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    text-align: center;
+    transition: all 0.2s ease;
+}
+
+.upload-box-jelantara:hover {
+    border-color: var(--primary-500);
+    background-color: var(--primary-100);
+}
+
+.form-file-jelantara {
+    font-size: 13px;
+    color: var(--neutral-900);
+}
+
+.form-file-jelantara::file-selector-button {
+    background-color: var(--secondary-500);
+    color: var(--neutral-900);
+    font-weight: 600;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 6px 12px;
+    margin-right: 10px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.form-file-jelantara::file-selector-button:hover {
+    background-color: var(--primary-500);
+}
+
+.preview-img-container {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--primary-200);
+    background-color: var(--neutral-0);
+    overflow: hidden;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.preview-img-container img,
+.product-img-box img,
+.detail-img-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.detail-img-box {
+    width: 96px;
+    height: 96px;
+    border-radius: var(--radius-lg);
+    border: 2px solid var(--primary-500);
+    background-color: var(--neutral-0);
+    overflow: hidden;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--primary-800);
+}

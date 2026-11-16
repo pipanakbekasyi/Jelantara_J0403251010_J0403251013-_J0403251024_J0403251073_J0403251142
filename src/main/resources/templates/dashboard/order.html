@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jelantara — Dashboard Penjual</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/global.css}">
+    <link rel="stylesheet" th:href="@{/css/dashboard.css}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div th:replace="~{fragments/dashboard-nav :: dash-nav(${activeTab})}"></div>
+
+    <div class="container pb-5" style="max-width: 1120px;">
+        <div th:if="${orderSuccess}" class="jlt-card p-3 mb-4 d-flex justify-content-between align-items-center" style="background-color: #FFFAE5; border-color: #FFCA00;">
+            <div class="d-flex align-items-center gap-2 fw-semibold" style="color: #926008;">
+                <i data-lucide="check-circle-2" style="width: 20px; height: 20px;"></i>
+                <span th:text="${orderSuccess}"></span>
+            </div>
+            <span class="badge-amber-points">Tercatat</span>
+        </div>
+        <div th:if="${orderError}" class="jlt-card p-3 mb-4 d-flex justify-content-between align-items-center" style="background-color: #FEF2F2; border-color: #DC2626; color: #DC2626;">
+            <div class="d-flex align-items-center gap-2 fw-semibold">
+                <i data-lucide="alert-triangle" style="width: 20px; height: 20px;"></i>
+                <span th:text="${orderError}"></span>
+            </div>
+        </div>
+
+        <!-- 4 Segmented Control Tabs dengan onclick & perpindahan otomatis -->
+        <div class="segmented-control mb-4 flex-wrap">
+            <button type="button" id="seg-btn-order" onclick="switchDashboardTab('order')"
+                    class="segmented-btn" th:classappend="${activeTab == 'order' or activeTab == null} ? 'active' : ''">
+                <i data-lucide="droplet" style="width: 18px; height: 18px;"></i>
+                <span>Transaksi Minyak</span>
+            </button>
+            <button type="button" id="seg-btn-redeem" onclick="switchDashboardTab('redeem')"
+                    class="segmented-btn" th:classappend="${activeTab == 'redeem'} ? 'active' : ''">
+                <i data-lucide="gift" style="width: 18px; height: 18px;"></i>
+                <span>Redeem Poin</span>
+            </button>
+            <button type="button" id="seg-btn-tracker" onclick="switchDashboardTab('tracker')"
+                    class="segmented-btn" th:classappend="${activeTab == 'tracker'} ? 'active' : ''">
+                <i data-lucide="truck" style="width: 18px; height: 18px;"></i>
+                <span>Order Tracker</span>
+            </button>
+            <button type="button" id="seg-btn-transaction" onclick="switchDashboardTab('transaction')"
+                    class="segmented-btn" th:classappend="${activeTab == 'transaction'} ? 'active' : ''">
+                <i data-lucide="receipt" style="width: 18px; height: 18px;"></i>
+                <span>Riwayat Transaksi</span>
+            </button>
+        </div>
+
+        <!-- ==================== 1. TAB TRANSAKSI MINYAK (FORM + CARD RINGKASAN DI SAMPING) ==================== -->
+        <div id="tab-content-order" th:classappend="${activeTab != null and activeTab != 'order'} ? 'd-none' : ''">
+            <div class="row g-4 align-items-start">
+                <div class="col-lg-7">
+                    <div class="jlt-card p-4 p-md-5">
+                        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+                            <div>
+                                <span class="badge-yellow-status mb-2">Formulir Setor Jelantah</span>
+                                <h4 class="fw-bold mb-0">Buat Transaksi Minyak</h4>
+                            </div>
+                            <div class="text-end">
+                                <small class="text-secondary d-block">Harga Acuan Pusat</small>
+                                <span class="fw-bold fs-5" style="color: #B87B0A;" th:text="'Rp ' + ${#numbers.formatInteger(hargaPerLiter, 3, 'POINT')} + ' / L'">Rp 6.000 / L</span>
+                            </div>
+                        </div>
+
+                        <form th:action="@{/dashboard/order}" method="post">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold small">Jumlah Liter <span class="text-danger">*</span></label>
+                                    <div class="jlt-input-group">
+                                        <i data-lucide="droplet" class="jlt-icon" style="width: 18px; height: 18px;"></i>
+                                        <input type="number" step="0.5" min="1" id="inputLiterOrder" name="jumlahLiter"
+                                               value="8" th:attr="data-harga=${hargaPerLiter}" class="jlt-input" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold small">Tanggal Penjemputan <span class="text-danger">*</span></label>
+                                    <div class="jlt-input-group">
+                                        <i data-lucide="calendar" class="jlt-icon" style="width: 18px; height: 18px;"></i>
+                                        <input type="date" id="inputTanggalOrder" name="tanggal" value="2026-11-09" class="jlt-input" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold small">Waktu <span class="text-danger">*</span></label>
+                                    <div class="jlt-input-group">
+                                        <i data-lucide="clock" class="jlt-icon" style="width: 18px; height: 18px;"></i>
+                                        <input type="time" id="inputWaktuOrder" name="waktu" value="10:00" class="jlt-input" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Pilihan Pembayaran Minyak: Transfer Bank atau E-Wallet (GoPay, DANA, OVO) -->
+                            <div class="p-3 rounded-4 border mb-3" style="background-color: #FFFAE5; border-color: #FFEA85 !important;">
+                                <label class="form-label fw-bold small mb-2">Pilih Metode Pembayaran Minyak <span class="text-danger">*</span></label>
+                                <div class="mb-3">
+                                    <div class="jlt-input-group">
+                                        <i data-lucide="wallet" class="jlt-icon" style="width: 18px; height: 18px;"></i>
+                                        <select id="selectTipePembayaran" name="tipePembayaran" class="jlt-input" onchange="updateDropdownPembayaran()" required>
+                                            <option value="Transfer Bank">Transfer Bank</option>
+                                            <option value="E-Wallet">E-Wallet (GoPay / DANA / OVO)</option>
+                                        </select>
+                                    </div>
+                                </div>
+
+                                <div id="wrapperDetailPembayaran" class="row g-3">
+                                    <div class="col-md-5">
+                                        <label id="labelNamaPenyedia" class="form-label fw-semibold small">Pilih Bank Tujuan</label>
+                                        <select id="selectNamaPenyedia" name="namaPenyedia" class="jlt-input ps-3" onchange="updateRingkasanMinyak()" required></select>
+                                    </div>
+                                    <div class="col-md-7">
+                                        <label id="labelNomorTujuan" class="form-label fw-semibold small">Nomor Rekening Bank</label>
+                                        <div class="jlt-input-group">
+                                            <i data-lucide="credit-card" class="jlt-icon" style="width: 18px; height: 18px;"></i>
+                                            <input type="text" id="inputNomorTujuan" name="nomorTujuan" class="jlt-input"
+                                                   oninput="updateRingkasanMinyak()"
+                                                   placeholder="Masukkan no rek / no e-wallet" required>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small">Alamat Penjemputan <span class="text-danger">*</span></label>
+                                <div class="jlt-input-group">
+                                    <i data-lucide="map-pin" class="jlt-icon" style="width: 18px; height: 18px; top: 22px;"></i>
+                                    <textarea id="inputLokasiOrder" name="lokasi" rows="2" class="jlt-input" oninput="updateRingkasanMinyak()" required
+                                              th:text="${userAktif != null and !#strings.isEmpty(userAktif.alamat) ? userAktif.alamat : 'Jl. Melati No. 10, Ciomas, Bogor'}"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold small">Catatan Tambahan</label>
+                                <div class="jlt-input-group">
+                                    <i data-lucide="file-text" class="jlt-icon" style="width: 18px; height: 18px;"></i>
+                                    <input type="text" name="catatan" class="jlt-input" placeholder="Contoh: Disimpan dalam jerigen kuning dekat pagar depan">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn-pill-primary w-100">
+                                <i data-lucide="send" style="width: 18px; height: 18px;"></i>
+                                <span>Kirim Pesanan Transaksi Minyak</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Card Ringkasan Transaksi Minyak di Samping Card Form -->
+                <div class="col-lg-5">
+                    <div class="jlt-card p-4" style="background-color: #FFFAE5; border-color: #FFCA00;">
+                        <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                            <div>
+                                <span class="badge-yellow-status mb-1">Live Summary</span>
+                                <h5 class="fw-bold mb-0">Ringkasan Transaksi Minyak</h5>
+                            </div>
+                            <i data-lucide="file-spreadsheet" style="width: 24px; height: 24px; color: #926008;"></i>
+                        </div>
+
+                        <div class="bg-white rounded-4 p-3 border mb-3 small">
+                            <div class="d-flex justify-content-between py-2 border-bottom">
+                                <span class="text-secondary">Penjual / Mitra</span>
+                                <span class="fw-bold" th:text="${userAktif != null ? userAktif.username + ' (' + userAktif.kategori + ')' : 'Budi Santoso (Rumah Tangga)'}">Budi Santoso</span>
+                            </div>
+                            <div class="d-flex justify-content-between py-2 border-bottom">
+                                <span class="text-secondary">Volume Minyak</span>
+                                <span id="summaryMinyakLiter" class="fw-bold">8 Liter</span>
+                            </div>
+                            <div class="d-flex justify-content-between py-2 border-bottom">
+                                <span class="text-secondary">Jadwal Jemput</span>
+                                <span id="summaryMinyakJadwal" class="fw-semibold">2026-11-09 • 10:00 WIB</span>
+                            </div>
+                            <div class="d-flex justify-content-between py-2 border-bottom">
+                                <span class="text-secondary">Metode Pencairan</span>
+                                <span id="summaryMinyakMetodeBayar" class="fw-bold" style="color: #926008;">Transfer Bank - BCA</span>
+                            </div>
+                            <div class="d-flex justify-content-between py-2 border-bottom">
+                                <span class="text-secondary">No. Rek / E-Wallet</span>
+                                <span id="summaryMinyakNomorTujuan" class="fw-semibold">Belum diisi</span>
+                            </div>
+                            <div class="pt-2">
+                                <span class="text-secondary d-block">Lokasi Penjemputan:</span>
+                                <span id="summaryMinyakLokasi" class="fw-semibold">Jl. Melati No. 10, Ciomas, Bogor</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-4 p-3 border mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small text-secondary">Estimasi Dana Cair</span>
+                                <span id="summaryMinyakTotalRp" class="fw-bold fs-4" style="color: #18181B;">Rp 48.000</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                <span class="small fw-semibold">Bonus Poin Loyalitas</span>
+                                <span id="summaryMinyakTotalPoin" class="badge-amber-points">+200 Poin</span>
+                            </div>
+                        </div>
+
+                        <div class="small text-secondary d-flex align-items-center gap-2">
+                            <i data-lucide="shield-check" style="width: 18px; height: 18px; color: #926008;"></i>
+                            <span>Dana ditransfer otomatis setelah timbangan diverifikasi kurir.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 2. TAB REDEEM POIN (FORM REDEEM LENGKAP + PILIH CEPAT + CARD RINGKASAN DI SAMPING) ==================== -->
+        <div id="tab-content-redeem" th:classappend="${activeTab != 'redeem'} ? 'd-none' : ''">
+            <div class="row g-4 align-items-start">
+                <!-- Kolom Kiri: Card Form Redeem Poin (Sesuai Referensi 2) -->
+                <div class="col-lg-7">
+                    <div class="jlt-card p-4 p-md-5">
+                        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+                            <div>
+                                <span class="badge-yellow-status mb-2">Formulir Penukaran Poin (Referensi 2)</span>
+                                <h4 class="fw-bold mb-0">Form Transaksi Redeem Produk Olahan</h4>
+                            </div>
+                            <span class="badge-amber-points" th:text="'Saldo Anda: ' + ${saldoPoin} + ' Poin'">450 Poin</span>
+                        </div>
+
+                        <!-- Pilihan Cepat Klik Kartu Produk (dengan onclick otomatis mengisi form & ringkasan) -->
+                        <label class="form-label fw-semibold small mb-2">Klik Cepat Produk Olahan atau Pilih dari Dropdown di Bawah:</label>
+                        <div class="row g-2 mb-4">
+                            <div class="col-sm-6" th:each="prod, iterStat : ${produkList}">
+                                <div class="redeem-item-card p-3 h-100 d-flex align-items-center justify-content-between"
+                                     th:classappend="${(selectedProdukId != null and selectedProdukId == prod.idProduk) or (selectedProdukId == null and iterStat.first)} ? 'selected' : ''"
+                                     onclick="pilihProdukRedeemCard(this)"
+                                     th:attr="data-id=${prod.idProduk},
+                                              data-nama=${prod.namaProduk},
+                                              data-kategori=${prod.kategori},
+                                              data-poin=${#numbers.formatInteger(prod.hargaPoin, 1)},
+                                              data-rp=${prod.hargaRupiah},
+                                              data-stok=${prod.stok}">
+                                    <div class="d-flex align-items-center gap-2">
+                                        <div class="rounded-circle d-inline-flex align-items-center justify-content-center flex-shrink-0"
+                                             style="width: 38px; height: 38px; background-color: #FFF3B8;">
+                                            <i th:attr="data-lucide=${prod.ikon}" style="width: 18px; height: 18px; color: #926008;"></i>
+                                        </div>
+                                        <div>
+                                            <div class="fw-bold small lh-sm" th:text="${prod.namaProduk}">Sabun Olahan</div>
+                                            <small class="text-secondary" style="font-size: 11px;" th:text="${#numbers.formatInteger(prod.hargaPoin, 1)} + ' Poin • Stok: ' + ${prod.stok}">100 Poin</small>
+                                        </div>
+                                    </div>
+                                    <span class="badge bg-white text-dark border rounded-pill px-2 py-1 small">Pilih</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Form Input Lengkap Redeem Poin -->
+                        <form th:action="@{/dashboard/redeem}" method="post">
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-8">
+                                    <label class="form-label fw-semibold small">Produk Olahan Dipilih <span class="text-danger">*</span></label>
+                                    <div class="jlt-input-group">
+                                        <i data-lucide="package" class="jlt-icon" style="width: 18px; height: 18px;"></i>
+                                        <select id="selectProdukRedeem" name="idProduk" class="jlt-input"
+                                                onchange="updateRingkasanRedeem()"
+                                                th:attr="data-saldo=${saldoPoin}" required>
+                                            <option th:each="prod : ${produkList}"
+                                                    th:value="${prod.idProduk}"
+                                                    th:selected="${selectedProdukId != null and selectedProdukId == prod.idProduk}"
+                                                    th:attr="data-nama=${prod.namaProduk}, data-kategori=${prod.kategori}, data-poin=${#numbers.formatInteger(prod.hargaPoin, 1)}, data-rp=${prod.hargaRupiah}, data-stok=${prod.stok}"
+                                                    th:text="${prod.namaProduk} + ' — ' + ${#numbers.formatInteger(prod.hargaPoin, 1)} + ' Poin (Stok: ' + ${prod.stok} + ')'">
+                                            </option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label fw-semibold small">Jumlah (Qty) <span class="text-danger">*</span></label>
+                                    <div class="jlt-input-group">
+                                        <i data-lucide="layers" class="jlt-icon" style="width: 18px; height: 18px;"></i>
+                                        <input type="number" id="inputQtyRedeem" name="jumlahBarang" min="1" max="10" value="1"
+                                               oninput="updateRingkasanRedeem()" class="jlt-input" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="row g-3 mb-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold small">Nama Penerima <span class="text-danger">*</span></label>
+                                    <div class="jlt-input-group">
+                                        <i data-lucide="user" class="jlt-icon" style="width: 18px; height: 18px;"></i>
+                                        <input type="text" id="inputPenerimaRedeem" name="namaPenerima" class="jlt-input"
+                                               oninput="updateRingkasanRedeem()"
+                                               th:value="${userAktif != null ? userAktif.username : 'Budi Santoso'}" required>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold small">No. Telepon Penerima <span class="text-danger">*</span></label>
+                                    <div class="jlt-input-group">
+                                        <i data-lucide="phone" class="jlt-icon" style="width: 18px; height: 18px;"></i>
+                                        <input type="text" id="inputTelpRedeem" name="noTelpPenerima" class="jlt-input"
+                                               oninput="updateRingkasanRedeem()"
+                                               th:value="${userAktif != null and !#strings.isEmpty(userAktif.noTelp) ? userAktif.noTelp : '081288990011'}" required>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label fw-semibold small">Alamat Pengiriman Produk <span class="text-danger">*</span></label>
+                                <div class="jlt-input-group">
+                                    <i data-lucide="map-pin" class="jlt-icon" style="width: 18px; height: 18px; top: 22px;"></i>
+                                    <textarea id="inputAlamatRedeem" name="alamatPengiriman" rows="2" class="jlt-input"
+                                              oninput="updateRingkasanRedeem()" required
+                                              th:text="${userAktif != null and !#strings.isEmpty(userAktif.alamat) ? userAktif.alamat : 'Jl. Melati No. 10, Ciomas, Bogor'}"></textarea>
+                                </div>
+                            </div>
+
+                            <div class="mb-4">
+                                <label class="form-label fw-semibold small">Catatan Pengiriman Redeem</label>
+                                <div class="jlt-input-group">
+                                    <i data-lucide="message-square" class="jlt-icon" style="width: 18px; height: 18px;"></i>
+                                    <input type="text" name="catatanRedeem" class="jlt-input" placeholder="Contoh: Kemas dengan bubble wrap tambahan">
+                                </div>
+                            </div>
+
+                            <button type="submit" class="btn-pill-primary w-100">
+                                <i data-lucide="award" style="width: 18px; height: 18px;"></i>
+                                <span>Konfirmasi Tukar Poin Sekarang</span>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <!-- Kolom Kanan: Card Ringkasan Transaksi Redeem di Samping Form -->
+                <div class="col-lg-5">
+                    <div id="redeemSummaryContainer" class="jlt-card p-4" style="background-color: #FFFAE5; border-color: #FFCA00;"
+                         th:attr="data-saldo=${saldoPoin}">
+                        <div class="d-flex justify-content-between align-items-center mb-3 pb-3 border-bottom">
+                            <div>
+                                <span class="badge-yellow-status mb-1">Redeem Summary</span>
+                                <h5 class="fw-bold mb-0">Ringkasan Transaksi Redeem</h5>
+                            </div>
+                            <i data-lucide="gift" style="width: 24px; height: 24px; color: #926008;"></i>
+                        </div>
+
+                        <div class="bg-white rounded-4 p-3 border mb-3 small">
+                            <div class="d-flex justify-content-between py-2 border-bottom">
+                                <span class="text-secondary">Produk Dipilih</span>
+                                <span id="summaryRedeemProduk" class="fw-bold">Sabun Olahan Eco-Clean</span>
+                            </div>
+                            <div class="d-flex justify-content-between py-2 border-bottom">
+                                <span class="text-secondary">Kuantitas &amp; Stok</span>
+                                <span id="summaryRedeemQty" class="fw-semibold">1 pcs (Stok: 20)</span>
+                            </div>
+                            <div class="d-flex justify-content-between py-2 border-bottom">
+                                <span class="text-secondary">Poin Satuan</span>
+                                <span id="summaryRedeemHargaPoin" class="fw-semibold">100 Poin / pcs</span>
+                            </div>
+                            <div class="d-flex justify-content-between py-2 border-bottom">
+                                <span class="text-secondary">Nilai Produk Setara</span>
+                                <span id="summaryRedeemNilaiRp" class="fw-semibold">Rp 15.000</span>
+                            </div>
+                            <div class="d-flex justify-content-between py-2 border-bottom">
+                                <span class="text-secondary">Penerima</span>
+                                <span id="summaryRedeemPenerima" class="fw-bold" th:text="${userAktif != null ? userAktif.username : 'Budi Santoso'}">Budi Santoso</span>
+                            </div>
+                            <div class="pt-2">
+                                <span class="text-secondary d-block">Alamat Pengiriman:</span>
+                                <span id="summaryRedeemAlamat" class="fw-semibold" th:text="${userAktif != null and !#strings.isEmpty(userAktif.alamat) ? userAktif.alamat : 'Jl. Melati No. 10, Ciomas, Bogor'}">Jl. Melati No. 10, Ciomas, Bogor</span>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-4 p-3 border mb-3">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small text-secondary">Total Poin Ditukar</span>
+                                <span id="summaryRedeemTotalPoin" class="fw-bold fs-4" style="color: #B87B0A;">100 Poin</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                                <span class="small fw-semibold">Estimasi Sisa Saldo Poin</span>
+                                <span id="summaryRedeemSisaPoin" class="badge-yellow-status">350 Poin</span>
+                            </div>
+                        </div>
+
+                        <div class="small text-secondary d-flex align-items-center gap-2">
+                            <i data-lucide="truck" style="width: 18px; height: 18px; color: #926008;"></i>
+                            <span>Produk olahan akan dikirim kurir Jelantara ke alamat Anda.</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 3. TAB ORDER TRACKER ==================== -->
+        <div id="tab-content-tracker" th:classappend="${activeTab != 'tracker'} ? 'd-none' : ''">
+            <div class="jlt-card p-4 p-md-5 mb-4">
+                <div class="row align-items-center g-4">
+                    <div class="col-lg-5">
+                        <span class="badge-yellow-status mb-2">Live Resi Tracking</span>
+                        <h4 class="fw-bold mb-1">Cek Status Penjemputan &amp; Pengiriman</h4>
+                        <p class="text-secondary small mb-0">Masukkan Nomor Resi Transaksi Minyak (contoh: <strong>JLT-88291024</strong>) atau Resi Redeem (contoh: <strong>RDM-66201944</strong>).</p>
+                    </div>
+                    <div class="col-lg-7">
+                        <form th:action="@{/check-it-now}" method="get" class="d-flex flex-wrap flex-sm-nowrap gap-2">
+                            <input type="hidden" name="tab" value="tracker">
+                            <div class="jlt-input-group flex-grow-1">
+                                <i data-lucide="search" class="jlt-icon" style="width: 18px; height: 18px;"></i>
+                                <input type="text" name="resi" th:value="${inputResi}" class="jlt-input"
+                                       placeholder="Masukkan Nomor Resi terlebih dahulu..." required>
+                            </div>
+                            <button type="submit" class="btn-pill-primary px-4">
+                                <i data-lucide="radar" style="width: 18px; height: 18px;"></i>
+                                <span>Lacak Resi</span>
+                            </button>
+                        </form>
+                        <div class="mt-2 small text-secondary">
+                            Contoh resi aktif:
+                            <a th:href="@{/check-it-now(tab='tracker', resi='JLT-88291024')}" class="fw-bold text-dark me-2">JLT-88291024</a>
+                            <a th:href="@{/check-it-now(tab='tracker', resi='RDM-66201944')}" class="fw-bold text-dark me-2">RDM-66201944</a>
+                            <a th:href="@{/check-it-now(tab='tracker', resi='JLT-77419012')}" class="fw-bold text-dark">JLT-77419012</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div th:if="${trackedOrder == null and trackerError == null}" class="jlt-card p-5 text-center">
+                <div class="rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 68px; height: 68px; background-color: #FFFAE5;">
+                    <i data-lucide="package-search" style="width: 34px; height: 34px; color: #926008;"></i>
+                </div>
+                <h5 class="fw-bold">Silakan Masukkan Nomor Resi Terlebih Dahulu</h5>
+                <p class="text-secondary small mb-0">Timeline pelacakan kurir akan ditampilkan setelah Anda mengisi nomor resi pada kolom di atas.</p>
+            </div>
+
+            <div th:if="${trackerError != null}" class="jlt-card p-4 text-center" style="background-color: #FEF2F2; border-color: #DC2626; color: #DC2626;">
+                <i data-lucide="alert-circle" class="mb-2" style="width: 32px; height: 32px;"></i>
+                <h6 class="fw-bold mb-1" th:text="${trackerError}"></h6>
+            </div>
+
+            <div th:if="${trackedOrder != null}" class="jlt-card p-4 p-md-5">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom">
+                    <div>
+                        <span class="badge-yellow-status mb-1" th:text="${trackedOrder.jenisTransaksi}">Transaksi Minyak</span>
+                        <h4 class="fw-bold mb-0">Status Pelacakan Real-Time</h4>
+                    </div>
+                    <div class="d-flex align-items-center gap-2">
+                        <span class="badge-amber-points" th:text="'No. Resi: ' + ${trackedOrder.noResi}">JLT-88291024</span>
+                        <span class="badge-yellow-status" th:text="${trackedOrder.status}">Dalam Perjalanan</span>
+                    </div>
+                </div>
+
+                <div class="table-responsive">
+                    <div class="logistics-timeline" style="min-width: 680px;">
+                        <div class="logistics-line-bg"></div>
+                        <div class="logistics-line-progress" th:style="'width: ' + (${trackedOrder.tahapLacak} * 16) + '%;'"></div>
+
+                        <div class="logistics-node-wrap" th:classappend="${trackedOrder.tahapLacak >= 1} ? 'done' : ''">
+                            <div class="logistics-node"><i data-lucide="file-check" style="width: 18px; height: 18px;"></i></div>
+                            <span class="small fw-semibold">Order Dibuat</span>
+                        </div>
+                        <div class="logistics-node-wrap" th:classappend="${trackedOrder.tahapLacak >= 2} ? 'done' : ''">
+                            <div class="logistics-node"><i data-lucide="user-check" style="width: 18px; height: 18px;"></i></div>
+                            <span class="small fw-semibold">Kurir Ditugaskan</span>
+                        </div>
+                        <div class="logistics-node-wrap" th:classappend="${trackedOrder.tahapLacak == 3} ? 'pickup-active' : (${trackedOrder.tahapLacak > 3} ? 'done' : '')">
+                            <div class="logistics-node"><i data-lucide="truck" style="width: 20px; height: 20px;"></i></div>
+                            <span class="small fw-bold">Pickup Lokasi</span>
+                        </div>
+                        <div class="logistics-node-wrap" th:classappend="${trackedOrder.tahapLacak >= 4} ? 'done' : ''">
+                            <div class="logistics-node"><i data-lucide="scale" style="width: 18px; height: 18px;"></i></div>
+                            <span class="small">Timbang &amp; Verifikasi</span>
+                        </div>
+                        <div class="logistics-node-wrap" th:classappend="${trackedOrder.tahapLacak >= 5} ? 'done' : ''">
+                            <div class="logistics-node"><i data-lucide="warehouse" style="width: 18px; height: 18px;"></i></div>
+                            <span class="small">Tangki Pusat</span>
+                        </div>
+                        <div class="logistics-node-wrap" th:classappend="${trackedOrder.tahapLacak >= 6} ? 'pickup-active' : ''">
+                            <div class="logistics-node"><i data-lucide="award" style="width: 18px; height: 18px;"></i></div>
+                            <span class="small">Dana &amp; Poin Cair</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="jlt-card p-4 mt-4" style="background-color: #FFFAE5; border-color: #FFEA85;">
+                    <div class="row align-items-center g-3">
+                        <div class="col-md-8 d-flex align-items-center gap-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center fw-bold fs-4 shadow-sm" style="width: 64px; height: 64px; background-color: #FFCA00; border: 3px solid #FFFFFF;">
+                                AP
+                            </div>
+                            <div>
+                                <div class="d-flex align-items-center gap-2">
+                                    <h5 class="fw-bold mb-0" th:text="${trackedOrder.namaKurir}">Andi Pratama</h5>
+                                    <span class="badge bg-white text-dark border rounded-pill px-2 py-1">
+                                        <span style="color: #FFCA00;">★</span> <span th:text="${trackedOrder.ratingKurir}">4.9</span>
+                                    </span>
+                                </div>
+                                <div class="small text-secondary mt-1">
+                                    Armada Mobil Boks Kuning Jelantara • <strong th:text="${trackedOrder.platArmada}">F 8821 JLT</strong>
+                                </div>
+                                <div class="mt-2 d-flex flex-wrap gap-2">
+                                    <span class="badge rounded-pill px-3 py-1" style="background-color: #F7B32E; color: #18181B;" th:text="'Status: ' + ${trackedOrder.estimasiTiba}">Estimasi: 12 Menit</span>
+                                    <span class="badge bg-white text-dark border rounded-pill px-3 py-1" th:text="${trackedOrder.infoPembayaranLengkap}">Transfer Bank</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="bg-white p-3 rounded-4 border">
+                                <small class="text-secondary d-block">Lokasi Penjemputan / Tujuan</small>
+                                <div class="fw-bold small mb-2" th:text="${trackedOrder.lokasi}">Jl. Melati No. 10</div>
+                                <small class="text-secondary d-block">Kapasitas Tangki Pusat</small>
+                                <div class="fw-bold small" th:text="${kapasitasTangki} + ' / ' + ${maksTangki} + ' L (' + ${persenTangki} + '%)'">840 / 1000 L</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 4. TAB TRANSACTION ==================== -->
+        <div id="tab-content-transaction" th:classappend="${activeTab != 'transaction'} ? 'd-none' : ''">
+            <div class="jlt-card p-4 p-md-5">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 pb-3 border-bottom gap-3">
+                    <div>
+                        <span class="badge-yellow-status mb-1">Riwayat &amp; Bukti Digital</span>
+                        <h4 class="fw-bold mb-0">Daftar Transaksi Minyak &amp; Redeem</h4>
+                    </div>
+
+                    <form th:action="@{/check-it-now}" method="get" class="d-flex flex-wrap gap-2 align-items-center">
+                        <input type="hidden" name="tab" value="transaction">
+                        <select name="filterJenis" class="jlt-input py-2 ps-3" style="width: auto; min-height: 40px;">
+                            <option value="Semua" th:selected="${filterJenis == 'Semua'}">Semua Jenis Transaksi</option>
+                            <option value="Transaksi Minyak" th:selected="${filterJenis == 'Transaksi Minyak'}">Transaksi Minyak</option>
+                            <option value="Redeem Poin" th:selected="${filterJenis == 'Redeem Poin'}">Redeem Poin</option>
+                        </select>
+                        <select name="filterStatus" class="jlt-input py-2 ps-3" style="width: auto; min-height: 40px;">
+                            <option value="Semua" th:selected="${filterStatus == 'Semua'}">Semua Status</option>
+                            <option value="Dalam Perjalanan" th:selected="${filterStatus == 'Dalam Perjalanan'}">Dalam Perjalanan</option>
+                            <option value="Diverifikasi" th:selected="${filterStatus == 'Diverifikasi'}">Diverifikasi</option>
+                            <option value="Diproses" th:selected="${filterStatus == 'Diproses'}">Diproses</option>
+                            <option value="Berhasil" th:selected="${filterStatus == 'Berhasil'}">Berhasil</option>
+                        </select>
+                        <button type="submit" class="btn-pill-secondary py-2 px-3" style="min-height: 40px;">
+                            <i data-lucide="filter" style="width: 16px; height: 16px;"></i>
+                            <span>Filter</span>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="d-flex flex-column gap-3">
+                    <div th:if="${#lists.isEmpty(transaksiList)}" class="text-center py-5 text-secondary">
+                        Tidak ada transaksi yang sesuai dengan filter pilihan Anda.
+                    </div>
+
+                    <div th:each="item : ${transaksiList}"
+                         class="jlt-card p-3 d-flex justify-content-between align-items-center"
+                         style="cursor: pointer;"
+                         onclick="showTransactionDetail(this)"
+                         th:attr="data-id=${item.idTransaksi},
+                                  data-resi=${item.noResi},
+                                  data-jenis=${item.jenisTransaksi},
+                                  data-tanggal=${item.tanggal},
+                                  data-waktu=${item.waktu},
+                                  data-liter=${item.jumlahLiter},
+                                  data-produk=${item.namaProdukRedeem},
+                                  data-qty=${item.qtyRedeem},
+                                  data-pembayaran=${item.infoPembayaranLengkap},
+                                  data-lokasi=${item.lokasi},
+                                  data-catatan=${item.catatan},
+                                  data-status=${item.status},
+                                  data-total=${item.totalRupiah},
+                                  data-poin=${item.poin},
+                                  data-kurir=${item.namaKurir}">
+                        <div class="d-flex align-items-center gap-3">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center"
+                                 style="width: 46px; height: 46px; background-color: #FFF3B8; color: #926008;">
+                                <i th:attr="data-lucide=${item.jenisTransaksi == 'Redeem Poin' ? 'gift' : 'droplet'}" style="width: 22px; height: 22px;"></i>
+                            </div>
+                            <div>
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <span class="fw-bold" th:text="${item.noResi}">JLT-88291024</span>
+                                    <span class="badge bg-white text-dark border rounded-pill px-2 py-0 small" th:text="${item.jenisTransaksi}">Transaksi Minyak</span>
+                                    <span class="badge-yellow-status" th:text="${item.status}">Berhasil</span>
+                                </div>
+                                <small class="text-secondary d-block mt-1">
+                                    <span th:text="${item.tanggal}">03 Nov 2026</span> •
+                                    <strong class="text-dark" th:if="${item.jenisTransaksi == 'Transaksi Minyak'}" th:text="${item.jumlahLiter} + ' Liter'">8.5 Liter</strong>
+                                    <strong class="text-dark" th:if="${item.jenisTransaksi == 'Redeem Poin'}" th:text="${item.namaProdukRedeem} + ' (' + ${item.qtyRedeem} + ' pcs)'">Produk</strong> •
+                                    <span th:text="${item.infoPembayaranLengkap}">Transfer Bank - BCA</span>
+                                </small>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge-amber-points"
+                                  th:text="${(item.jenisTransaksi == 'Redeem Poin' ? '-' : '+') + item.poin + ' Poin'}">+213 Poin</span>
+                            <i data-lucide="chevron-right" class="text-secondary" style="width: 18px; height: 18px;"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE-OUT SIDE PANEL DETAIL TRANSAKSI (ONCLICK) -->
+    <div id="sidePanelBackdrop" onclick="hideTransactionDetail()"></div>
+    <div id="sidePanel">
+        <div class="d-flex justify-content-between align-items-center mb-4 pb-3 border-bottom">
+            <h5 class="fw-bold m-0">Detail Bukti Transaksi</h5>
+            <button type="button" class="btn-close-x" onclick="hideTransactionDetail()">✕</button>
+        </div>
+
+        <div class="jlt-card p-3 text-center mb-4" style="background-color: #FFFAE5;">
+            <small id="panelJenis" class="text-secondary d-block">Transaksi Minyak</small>
+            <h4 id="panelResi" class="fw-bold mb-2">JLT-88291024</h4>
+            <span id="panelStatus" class="badge-yellow-status">Berhasil</span>
+        </div>
+
+        <div class="d-flex flex-column gap-2 mb-4 small">
+            <div class="d-flex justify-content-between border-bottom pb-2">
+                <span class="text-secondary">ID Transaksi</span>
+                <span id="panelId" class="fw-bold">TRX-001</span>
+            </div>
+            <div class="d-flex justify-content-between border-bottom pb-2">
+                <span class="text-secondary">Tanggal &amp; Waktu</span>
+                <span id="panelTanggal" class="fw-semibold">03 Nov 2026</span>
+            </div>
+            <div class="d-flex justify-content-between border-bottom pb-2">
+                <span class="text-secondary">Metode Pembayaran</span>
+                <span id="panelMetode" class="fw-semibold">Transfer Bank - BCA</span>
+            </div>
+            <div class="d-flex justify-content-between border-bottom pb-2">
+                <span class="text-secondary">Kurir Bertugas</span>
+                <span id="panelKurir" class="fw-semibold">Andi Pratama</span>
+            </div>
+            <div class="border-bottom pb-2">
+                <span class="text-secondary d-block">Lokasi Penjemputan / Tujuan</span>
+                <span id="panelLokasi" class="fw-semibold">Jl. Melati No. 10</span>
+            </div>
+            <div class="border-bottom pb-2">
+                <span class="text-secondary d-block">Catatan</span>
+                <span id="panelCatatan" class="text-secondary fst-italic">-</span>
+            </div>
+        </div>
+
+        <div class="jlt-card p-3 mb-4">
+            <div class="d-flex justify-content-between mb-2 small">
+                <span id="labelPanelKuantitas" class="text-secondary">Jumlah Minyak</span>
+                <span id="panelLiter" class="fw-bold">8.5 Liter</span>
+            </div>
+            <div class="d-flex justify-content-between mb-2 small">
+                <span class="text-secondary">Nominal Transaksi</span>
+                <span id="panelTotalRp" class="fw-bold fs-6">Rp 51.000</span>
+            </div>
+            <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+                <span class="small fw-semibold">Mutasi Poin</span>
+                <span id="panelPoin" class="badge-amber-points">+213 Poin</span>
+            </div>
+        </div>
+
+        <button type="button" onclick="window.print()" class="btn-pill-primary w-100 mb-2">
+            <i data-lucide="printer" style="width: 18px; height: 18px;"></i>
+            <span>Cetak Bukti Digital</span>
+        </button>
+        <button type="button" onclick="hideTransactionDetail()" class="btn-pill-outline w-100">Tutup Panel</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

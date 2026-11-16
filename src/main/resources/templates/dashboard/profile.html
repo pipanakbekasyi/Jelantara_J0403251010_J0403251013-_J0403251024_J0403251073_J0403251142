@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profil Saya - Penjual Jelantara</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/global.css}">
+    <link rel="stylesheet" th:href="@{/css/penjual.css}">
+</head>
+<body th:attr="data-flash-success=${flashSuccess},data-flash-error=${flashError}">
+
+    <div th:replace="~{fragments/navbar :: main-navbar('profile')}"></div>
+
+    <div class="container py-4">
+        <div class="row g-4">
+            <div class="col-lg-4">
+                <div class="jlt-card text-center h-100">
+                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center fw-bold fs-2 mb-3 shadow-sm"
+                         style="width:88px;height:88px;background:#FFCA00;color:#18181B;">
+                        <span th:text="${#strings.substring(penjual.namaPenjual, 0, 2).toUpperCase()}">BS</span>
+                    </div>
+                    <h4 class="fw-bold mb-1" th:text="${penjual.namaPenjual}">Budi Santoso</h4>
+                    <p class="small text-secondary mb-2" th:text="${penjual.email}">budi@gmail.com</p>
+                    <span class="badge-jlt-success mb-3 d-inline-block" th:text="'Kategori: ' + ${penjual.kategoriPenjual}">Rumah Tangga</span>
+
+                    <div class="p-3 rounded-4 text-start mt-2" style="background:#FFFAE5;border:1px solid #FFE675;">
+                        <div class="d-flex justify-content-between small mb-2">
+                            <span class="text-secondary">Saldo Poin:</span>
+                            <strong style="color:#926008;" th:text="${penjual.poin} + ' Poin'">350 Poin</strong>
+                        </div>
+                        <div class="d-flex justify-content-between small mb-2">
+                            <span class="text-secondary">No. HP / WA:</span>
+                            <strong th:text="${penjual.noHp}">081299887766</strong>
+                        </div>
+                        <div class="small mb-2">
+                            <span class="text-secondary d-block">Rekening / E-Wallet Pencairan:</span>
+                            <strong th:text="${penjual.infoPembayaranLengkap}">Bank - BCA (7210998212)</strong>
+                        </div>
+                        <div class="small">
+                            <span class="text-secondary d-block">Alamat Utama Saat Ini:</span>
+                            <strong th:text="${penjual.alamat}">Jl. Melati No. 10, Bogor</strong>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-8">
+                <div class="jlt-card h-100">
+                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                        <div>
+                            <h5 class="fw-bold mb-0">Edit Profil &amp; Rekening Pencairan</h5>
+                            <small class="text-secondary">Perbarui identitas, alamat utama, serta metode pencairan Bank atau E-Wallet Anda.</small>
+                        </div>
+                        <span class="badge-jlt-success">ROLE: PENJUAL</span>
+                    </div>
+
+                    <form th:action="@{/penjual/profile/update}" method="post" class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Nama Lengkap <span class="text-danger">*</span></label>
+                            <input type="text" name="namaPenjual" class="form-control" th:value="${penjual.namaPenjual}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Email Login <span class="text-danger">*</span></label>
+                            <input type="email" name="email" class="form-control" th:value="${penjual.email}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Nomor Handphone / WhatsApp <span class="text-danger">*</span></label>
+                            <input type="tel" name="noHp" class="form-control" th:value="${penjual.noHp}" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-semibold small">Kategori Sumber Jelantah <span class="text-danger">*</span></label>
+                            <select name="kategoriPenjual" class="form-select jlt-select" required>
+                                <option value="Rumah Tangga" th:selected="${penjual.kategoriPenjual == 'Rumah Tangga'}">Rumah Tangga</option>
+                                <option value="UMKM / Kuliner" th:selected="${penjual.kategoriPenjual == 'UMKM / Kuliner'}">UMKM / Warung Kuliner</option>
+                                <option value="Restoran / Hotel" th:selected="${penjual.kategoriPenjual == 'Restoran / Hotel'}">Restoran / Hotel</option>
+                            </select>
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Metode Pencairan <span class="text-danger">*</span></label>
+                            <select name="metodePembayaran" id="metodePembayaranProfile"
+                                    onchange="updatePilihanPenyedia('metodePembayaranProfile','namaPenyediaProfile','labelNomorProfile','inputNomorProfile')"
+                                    class="form-select jlt-select" required>
+                                <option value="Bank" th:selected="${penjual.metodePembayaran == null or penjual.metodePembayaran == 'Bank'}">Transfer Bank</option>
+                                <option value="E-Wallet" th:selected="${penjual.metodePembayaran == 'E-Wallet'}">E-Wallet</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small">Pilih Bank / E-Wallet <span class="text-danger">*</span></label>
+                            <select name="namaPenyedia" id="namaPenyediaProfile"
+                                    th:attr="data-selected=${penjual.namaPenyedia}"
+                                    class="form-select jlt-select" required>
+                                <option value="BCA">Bank BCA</option>
+                                <option value="Mandiri">Bank Mandiri</option>
+                                <option value="BRI">Bank BRI</option>
+                                <option value="BNI">Bank BNI</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-semibold small" id="labelNomorProfile">Nomor Rekening <span class="text-danger">*</span></label>
+                            <input type="text" name="noRekening" id="inputNomorProfile" class="form-control"
+                                   th:value="${penjual.noRekening}" placeholder="Contoh: 7210998212" required>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Alamat Utama Penjemputan Saat Ini <span class="text-danger">*</span></label>
+                            <textarea name="alamat" rows="2" class="form-control" required th:text="${penjual.alamat}"></textarea>
+                        </div>
+
+                        <div class="col-12">
+                            <label class="form-label fw-semibold small">Password Baru (Kosongkan jika tidak ingin mengubah password)</label>
+                            <input type="password" name="passwordBaru" class="form-control" placeholder="••••••••">
+                        </div>
+
+                        <div class="col-12 d-flex justify-content-end pt-2">
+                            <button type="submit" class="btn-jlt-primary px-5">
+                                <i data-lucide="save" style="width:18px;height:18px;"></i> Simpan Perubahan Profil
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

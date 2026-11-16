@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pusat Katalog Produk Olahan - Jelantara</title>
+
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Bootstrap 5.3 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <!-- File CSS Custom Jelantara Design System -->
+    <link rel="stylesheet" th:href="@{/css/jelantara-style.css}">
+
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+
+    <!-- TOP NAVIGATION BAR -->
+    <nav class="navbar-jelantara sticky-top">
+        <div class="container d-flex justify-content-between align-items-center">
+            <div class="d-flex align-items-center gap-3">
+                <div class="brand-badge">
+                    <i data-lucide="droplets"></i>
+                </div>
+                <div>
+                    <div class="fw-bold fs-5 brand-title">JELANTARA</div>
+                    <div class="body-small">Panel Pusat &bull; Manajemen Katalog Produk Olahan</div>
+                </div>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+                <span class="badge-step">
+                    <i data-lucide="shield-check" class="icon-xs me-1"></i>
+                    Admin Pusat Aktif
+                </span>
+            </div>
+        </div>
+    </nav>
+
+    <!-- MAIN CONTENT CONTAINER -->
+    <main class="container py-4 my-2">
+
+        <!-- NOTIFIKASI FEEDBACK -->
+        <div th:if="${pesanSukses}" class="alert-jelantara-success d-flex align-items-center justify-content-between mb-4">
+            <div class="d-flex align-items-center gap-2">
+                <i data-lucide="check-circle-2"></i>
+                <span th:text="${pesanSukses}"></span>
+            </div>
+            <a th:href="@{/produk-olahan}" class="text-decoration-none fw-bold alert-close-success">Tutup</a>
+        </div>
+
+        <div th:if="${pesanError}" class="alert-jelantara-error d-flex align-items-center justify-content-between mb-4">
+            <div class="d-flex align-items-center gap-2">
+                <i data-lucide="alert-triangle"></i>
+                <span th:text="${pesanError}"></span>
+            </div>
+            <a th:href="@{/produk-olahan}" class="text-decoration-none fw-bold alert-close-error">Tutup</a>
+        </div>
+
+        <!-- PANEL DETAIL PRODUK (DENGAN GAMBAR ASLI) -->
+        <div th:if="${detailProduk != null}" class="card-jelantara card-detail-highlight p-4 mb-4">
+            <div class="d-flex justify-content-between align-items-start gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <div class="detail-img-box">
+                        <img th:if="${detailProduk.gambar != null and !detailProduk.gambar.isEmpty()}"
+                             th:src="@{${detailProduk.gambar}}"
+                             alt="Foto Produk"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                        <i data-lucide="image"
+                           th:style="${detailProduk.gambar != null and !detailProduk.gambar.isEmpty() ? 'display:none;' : 'display:block;'}"></i>
+                    </div>
+                    <div>
+                        <span class="badge-step mb-2">Detail Produk Olahan</span>
+                        <h2 class="h2-jelantara mb-1" th:text="${detailProduk.namaProduk}"></h2>
+                        <p class="body-small mb-2" th:text="${ringkasanDetail}"></p>
+                        <p class="mb-0" th:text="${detailProduk.deskripsi}"></p>
+                    </div>
+                </div>
+                <a th:href="@{/produk-olahan}" class="btn-jelantara-secondary btn-action-sm">
+                    <i data-lucide="x" class="icon-sm"></i>
+                </a>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <!-- KOLOM KIRI: FORM TAMBAH / EDIT PRODUK OLAHAN (MULTIPART FILE UPLOAD) -->
+            <div class="col-lg-4">
+                <div class="card-jelantara p-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2 class="h2-jelantara mb-0" th:text="${isEdit ? 'Edit Produk Olahan' : 'Tambah Produk Baru'}"></h2>
+                        <span class="badge-step" th:text="${isEdit ? 'Mode Edit' : 'Form Input'}"></span>
+                    </div>
+                    <p class="body-small mb-4">
+                        Kelola produk hasil daur ulang minyak jelantah yang dapat ditukar dengan poin pengguna.
+                    </p>
+
+                    <form th:action="@{/produk-olahan/simpan}" th:object="${produkForm}" method="post" enctype="multipart/form-data">
+                        <!-- Input ID Produk -->
+                        <div class="mb-3">
+                            <label class="form-label-jelantara">ID Produk <span class="text-danger">*</span></label>
+                            <div class="input-icon-wrapper">
+                                <i data-lucide="hash" class="lucide-icon-left"></i>
+                                <input type="text" th:field="*{idProduk}" class="form-control-jelantara"
+                                       placeholder="Contoh: PRD-001" th:readonly="${isEdit}" required>
+                            </div>
+                        </div>
+
+                        <!-- Input Nama Produk -->
+                        <div class="mb-3">
+                            <label class="form-label-jelantara">Nama Produk <span class="text-danger">*</span></label>
+                            <div class="input-icon-wrapper">
+                                <i data-lucide="package" class="lucide-icon-left"></i>
+                                <input type="text" th:field="*{namaProduk}" class="form-control-jelantara"
+                                       placeholder="Contoh: Lilin Aromaterapi Lavender" required>
+                            </div>
+                        </div>
+
+                        <!-- Input Harga Poin & Stok -->
+                        <div class="row g-2 mb-3">
+                            <div class="col-6">
+                                <label class="form-label-jelantara">Harga Poin <span class="text-danger">*</span></label>
+                                <div class="input-icon-wrapper">
+                                    <i data-lucide="coins" class="lucide-icon-left"></i>
+                                    <input type="number" step="0.01" min="0" th:field="*{hargaPoin}"
+                                           class="form-control-jelantara" placeholder="150" required>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label-jelantara">Stok Tersedia <span class="text-danger">*</span></label>
+                                <div class="input-icon-wrapper">
+                                    <i data-lucide="layers" class="lucide-icon-left"></i>
+                                    <input type="number" min="0" th:field="*{stok}"
+                                           class="form-control-jelantara" placeholder="25" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Input Upload File Gambar Fisik -->
+                        <div class="mb-3">
+                            <label class="form-label-jelantara">Upload Foto Produk</label>
+                            <input type="hidden" th:field="*{gambar}">
+                            <div class="upload-box-jelantara">
+                                <!-- Preview Gambar Saat Ini / Baru Dipilih -->
+                                <div id="previewWrapper" class="mb-2"
+                                     th:style="${produkForm.gambar != null and !produkForm.gambar.isEmpty() ? 'display:block;' : 'display:none;'}">
+                                    <div class="preview-img-container">
+                                        <img id="imagePreview"
+                                             th:src="${produkForm.gambar != null and !produkForm.gambar.isEmpty() ? produkForm.gambar : ''}"
+                                             alt="Preview">
+                                    </div>
+                                    <div class="caption-path mt-1">Preview Gambar Produk</div>
+                                </div>
+
+                                <input type="file" name="fileGambar" id="fileGambarInput"
+                                       class="form-control form-file-jelantara"
+                                       accept="image/png, image/jpeg, image/jpg, image/webp"
+                                       onchange="tampilkanPreviewGambar(this)">
+                                <div class="body-small mt-1" style="font-size: 11px;">
+                                    Format: JPG, PNG, WEBP (Maks. 5MB)
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Input Deskripsi -->
+                        <div class="mb-4">
+                            <label class="form-label-jelantara">Deskripsi Produk</label>
+                            <textarea th:field="*{deskripsi}" rows="3" class="form-control-jelantara"
+                                      placeholder="Tuliskan komposisi dan manfaat produk olahan..."></textarea>
+                        </div>
+
+                        <!-- Tombol Aksi Form -->
+                        <div class="d-grid gap-2">
+                            <button type="submit" class="btn-jelantara-primary">
+                                <i data-lucide="save" class="icon-md"></i>
+                                <span th:text="${isEdit ? 'Simpan Perubahan' : 'Tambahkan ke Katalog'}"></span>
+                            </button>
+                            <a th:if="${isEdit}" th:href="@{/produk-olahan}" class="btn-jelantara-outline text-center">
+                                Batal Edit
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- KOLOM KANAN: DAFTAR KATALOG & PENCARIAN -->
+            <div class="col-lg-8">
+                <div class="card-jelantara p-4">
+                    <!-- Header & Search Bar Berbentuk Pill -->
+                    <div class="row g-3 align-items-center justify-content-between mb-3">
+                        <div class="col-md-5">
+                            <h2 class="h2-jelantara mb-1">Katalog Produk Olahan</h2>
+                            <p class="body-small mb-0">
+                                Total: <strong th:text="${#lists.size(listProduk)}">0</strong> produk terdaftar
+                            </p>
+                        </div>
+                        <div class="col-md-7">
+                            <form th:action="@{/produk-olahan}" method="get" class="d-flex gap-2">
+                                <div class="input-icon-wrapper flex-grow-1">
+                                    <i data-lucide="search" class="lucide-icon-left"></i>
+                                    <input type="text" name="keyword" th:value="${keyword}"
+                                           class="search-pill-input" placeholder="Cari nama produk olahan...">
+                                </div>
+                                <button type="submit" class="btn-jelantara-secondary btn-search-pill">
+                                    Cari
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Category Filter Pills -->
+                    <div class="d-flex flex-wrap gap-2 mb-4 pb-2 border-bottom">
+                        <a th:href="@{/produk-olahan}" class="category-pill text-decoration-none"
+                           th:classappend="${keyword == null or keyword == '' ? 'active' : ''}">All</a>
+                        <a th:href="@{/produk-olahan(keyword='Sabun')}" class="category-pill text-decoration-none"
+                           th:classappend="${keyword == 'Sabun' ? 'active' : ''}">Sabun</a>
+                        <a th:href="@{/produk-olahan(keyword='Lilin')}" class="category-pill text-decoration-none"
+                           th:classappend="${keyword == 'Lilin' ? 'active' : ''}">Lilin</a>
+                        <a th:href="@{/produk-olahan(keyword='Aroma')}" class="category-pill text-decoration-none"
+                           th:classappend="${keyword == 'Aroma' ? 'active' : ''}">Aroma Terapi</a>
+                        <a th:href="@{/produk-olahan(keyword='Pupuk')}" class="category-pill text-decoration-none"
+                           th:classappend="${keyword == 'Pupuk' ? 'active' : ''}">Pupuk</a>
+                    </div>
+
+                    <!-- Tabel Data Produk Olahan -->
+                    <div class="table-responsive">
+                        <table class="table table-jelantara mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Produk</th>
+                                    <th>Harga Tukar</th>
+                                    <th>Stok</th>
+                                    <th class="text-end">Aksi</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Empty State jika data kosong -->
+                                <tr th:if="${#lists.isEmpty(listProduk)}">
+                                    <td colspan="4" class="text-center py-5">
+                                        <div class="mb-2">
+                                            <i data-lucide="package-open" class="icon-empty-state"></i>
+                                        </div>
+                                        <div class="h3-jelantara">Belum Ada Produk Olahan</div>
+                                        <p class="body-small mb-0">Silakan tambahkan produk baru melalui formulir di sebelah kiri.</p>
+                                    </td>
+                                </tr>
+
+                                <!-- Baris Data Produk -->
+                                <tr th:each="item : ${listProduk}">
+                                    <td>
+                                        <div class="d-flex align-items-center gap-3">
+                                            <!-- Thumbnail Gambar Produk Asli + Fallback Ikon -->
+                                            <div class="product-img-box">
+                                                <img th:if="${item.gambar != null and !item.gambar.isEmpty()}"
+                                                     th:src="@{${item.gambar}}"
+                                                     alt="Thumbnail Produk"
+                                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                                <i data-lucide="sparkles"
+                                                   th:style="${item.gambar != null and !item.gambar.isEmpty() ? 'display:none;' : 'display:block;'}"></i>
+                                            </div>
+                                            <div>
+                                                <div class="d-flex align-items-center gap-2">
+                                                    <span class="fw-semibold" th:text="${item.namaProduk}"></span>
+                                                    <span class="body-small px-2 py-0 border rounded" th:text="${item.idProduk}"></span>
+                                                </div>
+                                                <div class="body-small text-truncate desc-truncate"
+                                                     th:text="${item.deskripsi != null and !item.deskripsi.isEmpty() ? item.deskripsi : 'Tidak ada deskripsi'}">
+                                                </div>
+                                                <div class="caption-path" th:text="${item.gambar != null and !item.gambar.isEmpty() ? item.gambar : 'Belum ada foto'}"></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <span class="badge-poin">
+                                            <i data-lucide="award" class="icon-xs"></i>
+                                            <span th:text="${#numbers.formatDecimal(item.hargaPoin, 1, 'POINT', 0, 'COMMA')} + ' Poin'"></span>
+                                        </span>
+                                    </td>
+                                    <td>
+                                        <span th:if="${item.stok > 5}" class="fw-semibold" th:text="${item.stok} + ' pcs'"></span>
+                                        <span th:if="${item.stok <= 5}" class="fw-semibold text-warning-jelantara"
+                                              th:text="${item.stok} + ' pcs (Menipis)'"></span>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="d-inline-flex gap-1">
+                                            <a th:href="@{/produk-olahan/detail/{id}(id=${item.idProduk})}"
+                                               class="btn-jelantara-outline btn-action-sm"
+                                               title="Lihat Detail">
+                                                <i data-lucide="eye" class="icon-sm"></i>
+                                            </a>
+                                            <a th:href="@{/produk-olahan/edit/{id}(id=${item.idProduk})}"
+                                               class="btn-jelantara-secondary btn-action-sm"
+                                               title="Edit Produk">
+                                                <i data-lucide="pencil" class="icon-sm"></i>
+                                            </a>
+                                            <a th:href="@{/produk-olahan/hapus/{id}(id=${item.idProduk})}"
+                                               class="btn-jelantara-destructive"
+                                               onclick="return confirm('Apakah Anda yakin ingin menghapus produk ini dari katalog?');"
+                                               title="Hapus Produk">
+                                                <i data-lucide="trash-2" class="icon-sm"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Script Inisialisasi Lucide Icons & Fungsi Preview Gambar -->
+    <script>
+        lucide.createIcons({
+            attrs: {
+                'stroke-width': 2
+            }
+        });
+
+        // Fungsi untuk menampilkan pratinjau (preview) gambar sesaat setelah user memilih file
+        function tampilkanPreviewGambar(input) {
+            const previewWrapper = document.getElementById('previewWrapper');
+            const imagePreview = document.getElementById('imagePreview');
+
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    previewWrapper.style.display = 'block';
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+    </script>
+</body>
+</html>

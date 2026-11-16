@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Notifikasi Penjual - Jelantara</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/global.css}">
+    <link rel="stylesheet" th:href="@{/css/penjual.css}">
+</head>
+<body th:attr="data-flash-success=${flashSuccess},data-flash-error=${flashError}">
+
+    <div th:replace="~{fragments/navbar :: main-navbar('notifikasi')}"></div>
+
+    <div class="container py-4">
+        <div class="jlt-card mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <span class="badge-jlt-success">Pusat Pemberitahuan Penjual</span>
+                <h3 class="fw-bold mt-1 mb-0">Notifikasi Update Terbaru</h3>
+            </div>
+            <div class="d-flex flex-wrap gap-2">
+                <button type="button" onclick="aktifkanPushNotification()" class="btn-jlt-secondary btn-sm">
+                    <i data-lucide="bell-ring" style="width:16px;height:16px;"></i> Aktifkan Push Notification
+                </button>
+                <a th:href="@{/check-it-now}" class="btn-jlt-outline btn-sm">&larr; Kembali ke Check it Now</a>
+            </div>
+        </div>
+
+        <div class="jlt-card">
+            <div th:if="${#lists.isEmpty(notifikasiList)}" class="text-center py-5 rounded-4" style="background:#FFFAE5;border:1px dashed #FFE675;">
+                <i data-lucide="bell" style="width:36px;height:36px;color:#B87B0A;" class="mb-2"></i>
+                <h6 class="fw-bold mb-1">Belum Ada Notifikasi</h6>
+                <p class="small text-secondary mb-0">Seluruh riwayat update penjemputan minyak dan pengantaran reward Anda akan tampil di sini.</p>
+            </div>
+
+            <div class="d-flex flex-column gap-3" id="listNotifPenjualContainer" th:if="${!#lists.isEmpty(notifikasiList)}">
+                <div class="notif-item-card notif-penjual-page-item" th:each="n : ${notifikasiList}">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-1 gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge-jlt-success" th:text="${n.tipe}">INFO</span>
+                            <strong class="fs-6" th:text="${n.judul}">Judul Notifikasi</strong>
+                        </div>
+                        <small class="text-secondary" th:text="${n.tanggal}">2026-11-13</small>
+                    </div>
+                    <p class="small text-secondary mb-0" th:text="${n.pesan}"></p>
+                </div>
+            </div>
+            <div id="listNotifPenjualContainer-pagination"></div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script th:src="@{/js/main.js}"></script>
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            initBootstrapPagination("listNotifPenjualContainer", ".notif-penjual-page-item", 5);
+        });
+    </script>
+</body>
+</html>

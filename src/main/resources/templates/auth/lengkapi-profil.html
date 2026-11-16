@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jelantara — Kelengkapan Profil User</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/global.css}">
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="container py-5" style="max-width: 680px;">
+        <div class="text-center mb-4">
+            <a class="d-inline-flex align-items-center gap-2 fw-bold fs-4 text-dark text-decoration-none mb-2" th:href="@{/}">
+                <span class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width: 40px; height: 40px; background-color: #FFCA00;">
+                    <i data-lucide="droplet" style="width: 22px; height: 22px; color: #18181B;"></i>
+                </span>
+                <span>JELANTARA</span>
+            </a>
+            <h3 class="fw-bold mb-1">Lengkapi Profil Pengguna</h3>
+            <p class="text-secondary small">Silakan isi kelengkapan data Username, Nomor Telepon, Alamat, dan Kategori Mitra Anda.</p>
+        </div>
+
+        <div th:if="${pesanSukses}" class="jlt-card p-3 mb-4 d-flex align-items-center gap-2" style="background-color: #FFFAE5; border-color: #FFCA00; color: #926008;">
+            <i data-lucide="check-circle-2" style="width: 20px; height: 20px;"></i>
+            <span class="small fw-semibold" th:text="${pesanSukses}"></span>
+        </div>
+
+        <div class="jlt-card p-4 p-md-5">
+            <form th:action="@{/auth/lengkapi-profil}" method="post">
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">Username <span class="text-danger">*</span></label>
+                    <div class="jlt-input-group">
+                        <i data-lucide="user" class="jlt-icon" style="width: 18px; height: 18px;"></i>
+                        <input type="text" name="username" class="jlt-input"
+                               th:value="${userAktif != null ? userAktif.username : 'Budi Santoso'}"
+                               placeholder="Masukkan username Anda" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">No. Telp <span class="text-danger">*</span></label>
+                    <div class="jlt-input-group">
+                        <i data-lucide="phone" class="jlt-icon" style="width: 18px; height: 18px;"></i>
+                        <input type="tel" name="noTelp" class="jlt-input"
+                               th:value="${userAktif != null and !#strings.isEmpty(userAktif.noTelp) ? userAktif.noTelp : '081288990011'}"
+                               placeholder="Contoh: 081288990011" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label fw-semibold small">Kategori <span class="text-danger">*</span></label>
+                    <div class="jlt-input-group">
+                        <i data-lucide="building-2" class="jlt-icon" style="width: 18px; height: 18px;"></i>
+                        <select name="kategori" class="jlt-input" required>
+                            <option value="Rumah Tangga" th:selected="${userAktif != null and userAktif.kategori == 'Rumah Tangga'}">Rumah Tangga</option>
+                            <option value="Kuliner" th:selected="${userAktif != null and userAktif.kategori == 'Kuliner'}">Kuliner</option>
+                            <option value="Hotel" th:selected="${userAktif != null and userAktif.kategori == 'Hotel'}">Hotel</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="form-label fw-semibold small">Alamat Lengkap <span class="text-danger">*</span></label>
+                    <div class="jlt-input-group">
+                        <i data-lucide="map-pin" class="jlt-icon" style="width: 18px; height: 18px; top: 22px;"></i>
+                        <textarea name="alamat" rows="3" class="jlt-input"
+                                  placeholder="Masukkan alamat lengkap penjemputan..." required
+                                  th:text="${userAktif != null and !#strings.isEmpty(userAktif.alamat) ? userAktif.alamat : 'Jl. Melati No. 10, Ciomas, Bogor'}"></textarea>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn-pill-primary w-100">
+                    <i data-lucide="check-circle" style="width: 18px; height: 18px;"></i>
+                    <span>Simpan Kelengkapan User &amp; Lanjutkan</span>
+                </button>
+            </form>
+        </div>
+    </div>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

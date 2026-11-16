@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Pusat - Pengelolaan Gudang &amp; Transaksi Jelantara</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.3.2/mdb.min.css">
+    <link rel="stylesheet" th:href="@{/css/global.css}">
+    <link rel="stylesheet" th:href="@{/css/pusat.css}">
+    <link rel="stylesheet" th:href="@{/css/penjual.css}">
+</head>
+<body th:attr="data-flash-success=${flashSuccess},data-flash-error=${flashError},data-flash-warning=${flashWarning}">
+
+    <div class="app-layout flex-column flex-lg-row">
+        <!-- Menyisipkan Sidebar Responsif Khusus Pusat -->
+        <div th:replace="~{fragments/sidebar-nav :: pusat-sidebar(${activeMenu}, ${pusat})}"></div>
+
+        <!-- Area Konten Utama -->
+        <main class="app-main-content p-3 p-md-4 p-lg-5">
+            <div class="d-flex flex-wrap justify-content-between align-items-center mb-4 gap-2">
+                <div>
+                    <span class="badge-jlt-success">RBAC Verified • Super Admin Pusat</span>
+                    <h2 class="fw-bold mt-1 mb-0">Dashboard Pusat Pengelolaan Minyak</h2>
+                </div>
+                <div class="text-end">
+                    <span class="small text-secondary d-block">Gudang Aktif</span>
+                    <strong class="text-truncate-1" th:text="${pusat.namaGudang}">Gudang Bandung</strong>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- 1. SECTION OVERVIEW HARI INI                                  -->
+            <!-- ============================================================ -->
+            <div th:if="${activeMenu == 'overview' or activeMenu == null}">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0">Overview Operasional Hari Ini</h5>
+                    <span class="badge-jlt-success" th:text="'Filter Tanggal: ' + ${#temporals.format(#temporals.createNow(), 'dd MMM yyyy')}">Hari Ini</span>
+                </div>
+
+                <!-- 4 Kartu Metrik Hari Ini -->
+                <div class="row g-3 mb-4">
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="overview-metric-card h-100">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small text-secondary fw-semibold">Permintaan Redeem (Hari Ini)</span>
+                                <span class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width:36px;height:36px;background:#FFF3B8;">
+                                    <i data-lucide="gift" style="width:18px;height:18px;color:#926008;"></i>
+                                </span>
+                            </div>
+                            <h3 class="fw-bold mb-0" th:text="${redeemHariIni} + ' Permintaan'">0 Permintaan</h3>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="overview-metric-card h-100">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small text-secondary fw-semibold">Permintaan Transaksi (Hari Ini)</span>
+                                <span class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width:36px;height:36px;background:#FFF3B8;">
+                                    <i data-lucide="file-plus" style="width:18px;height:18px;color:#926008;"></i>
+                                </span>
+                            </div>
+                            <h3 class="fw-bold mb-0" th:text="${transaksiHariIni} + ' Transaksi'">1 Transaksi</h3>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="overview-metric-card h-100">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small text-secondary fw-semibold">Total Petugas Available</span>
+                                <span class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width:36px;height:36px;background:#FFF3B8;">
+                                    <i data-lucide="user-check" style="width:18px;height:18px;color:#926008;"></i>
+                                </span>
+                            </div>
+                            <h3 class="fw-bold mb-0" th:text="${petugasAvailCount} + ' Kurir Siap'">1 Kurir Siap</h3>
+                        </div>
+                    </div>
+                    <div class="col-sm-6 col-xl-3">
+                        <div class="overview-metric-card h-100">
+                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                <span class="small text-secondary fw-semibold">Minyak Masuk (Hari Ini)</span>
+                                <span class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width:36px;height:36px;background:#FFF3B8;">
+                                    <i data-lucide="droplet" style="width:18px;height:18px;color:#926008;"></i>
+                                </span>
+                            </div>
+                            <h3 class="fw-bold mb-0" th:text="${minyakMasukHariIni} + ' Liter'">15.0 Liter</h3>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grafik MDBootstrap / Chart.js -->
+                <div class="row g-4 mb-4">
+                    <div class="col-md-6">
+                        <div class="jlt-card h-100">
+                            <h6 class="fw-bold mb-3">Penjualan Minyak 7 Hari Terakhir</h6>
+                            <canvas id="grafikPenjualanChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="jlt-card h-100">
+                            <h6 class="fw-bold mb-3">Aktivitas Redeem 7 Hari Terakhir</h6>
+                            <canvas id="grafikRedeemChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Indikator Kapasitas Tangki & Penetapan Harga Acuan -->
+                <div class="row g-4 mb-4">
+                    <div class="col-xl-7">
+                        <div class="jlt-card h-100">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
+                                <h5 class="fw-bold mb-0">Indikator Kapasitas Penampungan Gudang (UC-04)</h5>
+                                <span th:class="${stok.persentaseKapasitas >= 80 ? 'badge-jlt-error' : 'badge-jlt-success'}"
+                                      th:text="${stok.persentaseKapasitas >= 80 ? 'Peringatan >= 80% (Hampir Penuh!)' : 'Kapasitas Aman'}">Aman</span>
+                            </div>
+                            <p class="small text-secondary mb-3">
+                                Volume Terkumpul: <strong th:text="${stok.jumlahUpdate} + ' Liter'">0 L</strong> dari Batas Maksimal <strong th:text="${stok.batasStok} + ' Liter'">1000 L</strong>
+                            </p>
+                            <div class="tank-progress-wrapper mb-3">
+                                <div class="tank-progress-fill"
+                                     th:classappend="${stok.persentaseKapasitas >= 80 ? 'warning-limit' : ''}"
+                                     th:style="'width: ' + ${stok.persentaseKapasitas} + '%;'"
+                                     th:text="${stok.persentaseKapasitas} + '%'">0%</div>
+                            </div>
+                            <form th:action="@{/pusat/reset-tangki}" method="post" class="d-flex justify-content-end">
+                                <button type="submit" class="btn-jlt-secondary btn-sm">Kirim / Kosongkan Tangki Penampungan</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-5">
+                        <div class="jlt-card h-100">
+                            <h5 class="fw-bold mb-2">Penetapan Harga Minyak per Liter (BR-06)</h5>
+                            <p class="small text-secondary mb-3">Hanya Pusat yang berwenang mengubah harga acuan kalkulasi otomatis.</p>
+                            <form th:action="@{/pusat/update-harga}" method="post" class="d-flex flex-wrap gap-2 align-items-center">
+                                <input type="number" name="hargaBaru" class="form-control rounded-pill px-3 flex-grow-1" th:value="${hargaAcuan}" min="1000" step="500" required>
+                                <button type="submit" class="btn-jlt-primary">Simpan Harga</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- 2. SECTION KELOLA TRANSAKSI JUAL MINYAK & PENUGASAN KURIR    -->
+            <!-- ============================================================ -->
+            <div class="jlt-card mb-4" th:if="${activeMenu == 'transaksi'}">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                    <div>
+                        <h5 class="fw-bold mb-1">Kelola Pencatatan Transaksi &amp; Penugasan Kurir (Jual Minyak)</h5>
+                        <p class="small text-secondary mb-0">
+                            Pusat dapat menugaskan kurir serta melakukan pembaruan status transaksi jual minyak hingga selesai atau dibatalkan dengan bukti foto.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="row g-3">
+                    <div class="col-12" th:each="t : ${transaksiList}">
+                        <div class="jlt-card p-3">
+                            <div class="row align-items-center g-3">
+                                <div class="col-lg-5">
+                                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                        <span class="fw-bold fs-5" th:text="${t.kodeResi}">JLT-000001</span>
+                                        <span th:class="${t.status == 'Dibatalkan' ? 'badge-jlt-error' : (t.status == 'Selesai' ? 'badge-jlt-success' : 'badge-jlt-warning')}"
+                                              th:text="${t.status}">Transaksi Masuk</span>
+                                        <small class="text-secondary" th:text="${t.tanggalTransaksi}">2026-10-17</small>
+                                    </div>
+                                    <div class="small mb-1">
+                                        <strong>Penjual:</strong> <span class="text-truncate-1" th:text="${t.namaPenjualTransient}">Budi Santoso</span> |
+                                        <strong>Petugas:</strong> <span class="text-truncate-1" th:text="${t.namaPetugasTransient}">Belum Ditugaskan</span>
+                                    </div>
+                                    <div class="small mb-1 text-truncate-2">
+                                        <strong>Alamat Pickup:</strong> <span th:text="${t.lokasiPenjemputan}">Jl. Melati No. 10</span>
+                                    </div>
+                                    <div class="small mb-1">
+                                        <strong>Volume &amp; Total Bayar:</strong>
+                                        <span class="fw-bold" th:text="${t.jumlahMinyak} + ' Liter'">15 L</span> •
+                                        <span class="fw-bold" style="color:#926008;" th:text="'Rp ' + ${#numbers.formatDecimal(t.totalHarga, 0, 'POINT', 0, 'COMMA')} + ' (+' + ${t.hasilPoint} + ' Poin)'">Rp 90.000</span>
+                                    </div>
+                                    <div class="small text-secondary text-truncate-2">
+                                        <strong>Bukti Update Terakhir:</strong> <span th:text="${t.keteranganBukti != null ? t.keteranganBukti : '-'}">-</span>
+                                    </div>
+                                </div>
+
+                                <!-- Form Penugasan Kurir untuk Transaksi Masuk -->
+                                <div class="col-lg-4">
+                                    <div th:if="${t.status == 'Transaksi Masuk'}">
+                                        <form th:if="${!#lists.isEmpty(petugasTersediaList)}" th:action="@{/pusat/assign-petugas}" method="post" class="p-2 rounded-3" style="background:#FFFAE5;border:1px solid #FFE675;">
+                                            <input type="hidden" name="idTransaksi" th:value="${t.idTransaksi}">
+                                            <label class="small fw-bold mb-1 d-block">Tugaskan Kurir &amp; Kirim Pesan:</label>
+                                            <select name="idPetugas" class="form-select form-select-sm mb-2" required>
+                                                <option th:each="ptg : ${petugasTersediaList}" th:value="${ptg.idPetugas}"
+                                                        th:text="${ptg.namaPetugas} + ' (Beban: ' + ${ptg.bebanAngkut} + '/200L)'"></option>
+                                            </select>
+                                            <div class="d-flex flex-wrap gap-1">
+                                                <input type="text" name="pesanUntukPetugas" class="form-control form-control-sm flex-grow-1" placeholder="Pesan untuk petugas..." required>
+                                                <button type="submit" class="btn-jlt-secondary btn-sm px-3">Tugaskan</button>
+                                            </div>
+                                        </form>
+                                        <div th:if="${#lists.isEmpty(petugasTersediaList)}" class="badge-jlt-warning">
+                                            Tidak ada petugas berstatus tersedia saat ini.
+                                        </div>
+                                    </div>
+                                    <div th:if="${t.status != 'Transaksi Masuk' and t.status != 'Dibatalkan'}" class="small text-secondary">
+                                        <i data-lucide="check-circle" style="width:16px;height:16px;color:#B87B0A;"></i>
+                                        Kurir: <strong th:text="${t.namaPetugasTransient}">Andi</strong>.
+                                    </div>
+                                    <div th:if="${t.status == 'Dibatalkan'}" class="small text-danger">
+                                        <i data-lucide="x-circle" style="width:16px;height:16px;"></i> Transaksi telah dibatalkan.
+                                    </div>
+                                </div>
+
+                                <!-- Tombol Buka Detail Lengkap & Update Status -->
+                                <div class="col-12 col-lg-3 mobile-action-stack d-flex flex-wrap justify-content-lg-end gap-2">
+                                    <button type="button" class="btn-jlt-outline btn-sm"
+                                            th:attr="data-id=${t.idTransaksi},data-tanggal=${t.tanggalTransaksi},data-penjual=${t.namaPenjualTransient},data-petugas=${t.namaPetugasTransient},data-liter=${t.jumlahMinyak},data-harga=${t.hargaMinyak},data-total=${t.totalHarga},data-poin=${t.hasilPoint},data-lokasi=${t.lokasiPenjemputan},data-catatan=${t.catatan},data-status=${t.status},data-ketbukti=${t.keteranganBukti},data-foto=${t.foto}"
+                                            onclick="bukaDetailTransaksi(this)">
+                                        Detail &amp; Bukti
+                                    </button>
+                                    <button th:if="${t.status != 'Transaksi Masuk' and t.status != 'Selesai' and t.status != 'Dibatalkan'}" type="button" class="btn-jlt-primary btn-sm"
+                                            th:attr="data-id=${t.idTransaksi},data-liter=${t.jumlahMinyak},data-status=${t.status}"
+                                            onclick="bukaModalUpdateBukti(this)">
+                                        Update Status + Bukti Foto
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- 3. SECTION KELOLA PRODUK OLAHAN (Katalog: Insert, Edit, Delete) -->
+            <!-- ============================================================ -->
+            <div th:if="${activeMenu == 'katalog'}">
+                <div class="jlt-card mb-4" id="cardFormProduk">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                        <div>
+                            <h5 class="fw-bold mb-1" id="judulFormProduk">Tambah Produk Olahan Baru (UC-03)</h5>
+                            <p class="small text-secondary mb-0">Kelola katalog produk reward hasil olahan minyak jelantah (Tambah, Edit, atau Hapus).</p>
+                        </div>
+                        <button type="button" id="btnBatalEditProduk" onclick="resetFormProduk()" class="btn-jlt-outline btn-sm d-none">
+                            Batal Edit
+                        </button>
+                    </div>
+                    <form th:action="@{/pusat/produk/save}" method="post" enctype="multipart/form-data" class="row g-3">
+                        <input type="hidden" name="idProduk" id="formProdukId">
+                        <div class="col-12 col-md-6">
+                            <label class="form-label small fw-semibold mb-1">Nama Produk Olahan <span class="text-danger">*</span></label>
+                            <input type="text" name="namaProduk" id="formProdukNama" class="form-control" placeholder="Contoh: Sabun Cuci Piring Eco" required>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small fw-semibold mb-1">Harga Poin <span class="text-danger">*</span></label>
+                            <input type="number" name="hargaPoin" id="formProdukPoin" class="form-control" placeholder="150" min="1" required>
+                        </div>
+                        <div class="col-6 col-md-3">
+                            <label class="form-label small fw-semibold mb-1">Stok Barang <span class="text-danger">*</span></label>
+                            <input type="number" name="stok" id="formProdukStok" class="form-control" placeholder="20" min="0" required>
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small fw-semibold mb-1">Deskripsi Produk <span class="text-danger">*</span></label>
+                            <input type="text" name="deskripsi" id="formProdukDeskripsi" class="form-control" placeholder="Deskripsi singkat produk olahan" required>
+                        </div>
+                        <div class="col-12 col-md-8">
+                            <label class="form-label small fw-semibold mb-1">Upload Gambar Produk (Kosongkan saat edit jika tidak ingin ganti gambar)</label>
+                            <input type="file" name="gambarFile" id="formProdukGambar" accept="image/*" class="form-control">
+                        </div>
+                        <div class="col-12 col-md-4 d-flex align-items-end">
+                            <button type="submit" id="btnSubmitProduk" class="btn-jlt-primary w-100">Simpan Produk</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="jlt-card mb-4">
+                    <h5 class="fw-bold mb-3">Daftar Katalog Produk Olahan</h5>
+                    <div class="row g-3" id="listProdukPusatContainer">
+                        <div class="col-12 col-md-6 col-xl-4 produk-pusat-page-item" th:each="pr : ${produkList}">
+                            <div class="jlt-card p-3 h-100 d-flex flex-column justify-content-between">
+                                <div>
+                                    <div class="d-flex align-items-center gap-3 mb-2">
+                                        <img th:src="${pr.gambar}" alt="Img" class="rounded-3 border flex-shrink-0" style="width:64px;height:64px;object-fit:cover;">
+                                        <div class="min-w-0 flex-grow-1">
+                                            <strong class="text-truncate-1 d-block fs-6" th:text="${pr.namaProduk}">Sabun</strong>
+                                            <span class="badge-jlt-success d-inline-block mt-1" th:text="${#numbers.formatDecimal(pr.hargaPoin, 0, 'POINT', 0, 'COMMA')} + ' Poin • Stok: ' + ${pr.stok}">150 Poin</span>
+                                        </div>
+                                    </div>
+                                    <p class="small text-secondary text-truncate-2 mb-3" th:text="${pr.deskripsi}">Deskripsi produk</p>
+                                </div>
+                                <div class="mobile-action-stack d-flex flex-wrap gap-2 pt-2 border-top">
+                                    <button type="button" class="btn-jlt-secondary btn-sm flex-grow-1"
+                                            th:attr="data-id=${pr.idProduk},data-nama=${pr.namaProduk},data-poin=${pr.hargaPoin.intValue()},data-stok=${pr.stok},data-deskripsi=${pr.deskripsi}"
+                                            onclick="isiFormEditProduk(this)">
+                                        <i data-lucide="edit-3" style="width:14px;height:14px;"></i> Edit Produk
+                                    </button>
+                                    <form th:action="@{/pusat/produk/delete}" method="post" class="flex-grow-1"
+                                          onsubmit="return confirm('Hapus produk olahan ini dari katalog?');">
+                                        <input type="hidden" name="idProduk" th:value="${pr.idProduk}">
+                                        <button type="submit" class="btn-jlt-outline btn-sm w-100 text-danger border-danger">
+                                            <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Hapus
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- 4. SECTION VERIFIKASI & FLOW REDEEM POIN                     -->
+            <!-- ============================================================ -->
+            <div th:if="${activeMenu == 'redeem'}">
+                <div class="jlt-card mb-4">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                        <div>
+                            <h5 class="fw-bold mb-1">Verifikasi &amp; Flow Redeem Poin (5 Tahapan)</h5>
+                            <p class="small text-secondary mb-0">
+                                Konfirmasi Redeem &amp; Penugasan Petugas <strong>tidak memerlukan bukti foto</strong>. Update status setelah penugasan petugas wajib menyertakan foto bukti.
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-column gap-3" id="listTransaksiPusatContainer">
+                        <div class="jlt-card p-3 redeem-pusat-page-item" th:each="rd : ${penukaranList}">
+                            <div class="row align-items-center g-3">
+                                <div class="col-12 col-lg-5">
+                                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                                        <span class="badge" style="background:#FFF3B8;color:#926008;border:1px solid #FFE675;">Redeem Poin</span>
+                                        <strong class="fs-5" th:text="${rd.kodeResi}">RDM-000001</strong>
+                                        <span th:class="${rd.status == 'Dibatalkan' ? 'badge-jlt-error' : (rd.status == 'Selesai' ? 'badge-jlt-success' : 'badge-jlt-warning')}"
+                                              th:text="${rd.status}">Request Masuk</span>
+                                        <small class="text-secondary" th:text="${rd.tglPenukaran}"></small>
+                                    </div>
+                                    <div class="small mb-1">
+                                        <strong>Reward:</strong> <span class="fw-semibold text-truncate-1" th:text="${rd.jumlahUnit} + 'x ' + ${rd.namaProdukTransient} + ' (' + ${rd.jumlahPoin} + ' Poin)'"></span>
+                                    </div>
+                                    <div class="small mb-1">
+                                        <strong>Penjual:</strong> <span th:text="${rd.namaPenjualTransient}">Budi</span> |
+                                        <strong>Kurir:</strong> <span th:text="${rd.namaPetugasTransient}">Belum Ditugaskan</span>
+                                    </div>
+                                    <div class="small mb-1 text-truncate-2">
+                                        <strong>Tujuan:</strong> <span th:text="${rd.alamatPengantaran}"></span>
+                                    </div>
+                                    <div class="small text-secondary text-truncate-2">
+                                        <strong>Bukti Update:</strong> <span th:text="${rd.keteranganBukti != null ? rd.keteranganBukti : '-'}"></span>
+                                    </div>
+                                </div>
+
+                                <!-- Action Flow Berdasarkan Status Redeem (Tanpa Bukti Foto untuk Konfirmasi & Penugasan) -->
+                                <div class="col-12 col-lg-4">
+                                    <!-- Tahap 1 -> 2: Konfirmasi Permintaan Redeem (Tanpa Foto Bukti) -->
+                                    <div th:if="${rd.status == 'Request Masuk'}">
+                                        <form th:action="@{/pusat/redeem/konfirmasi}" method="post" class="p-3 rounded-3" style="background:#FFFAE5;border:1px solid #FFE675;">
+                                            <input type="hidden" name="idPenukaran" th:value="${rd.idPenukaran}">
+                                            <label class="small fw-bold mb-1 d-block">Konfirmasi Permintaan Redeem (Tanpa Foto):</label>
+                                            <input type="text" name="keteranganBukti" class="form-control form-control-sm mb-2" placeholder="Catatan konfirmasi pusat (opsional)...">
+                                            <button type="submit" class="btn-jlt-primary btn-sm w-100">Konfirmasi Redeem</button>
+                                        </form>
+                                    </div>
+
+                                    <!-- Tahap 2 -> 3: Tugaskan Kurir Reward (Tanpa Foto Bukti) -->
+                                    <div th:if="${rd.status == 'Redeem Dikonfirmasi'}">
+                                        <form th:if="${!#lists.isEmpty(petugasTersediaList)}" th:action="@{/pusat/redeem/assign-petugas}" method="post" class="p-3 rounded-3" style="background:#FFFAE5;border:1px solid #FFE675;">
+                                            <input type="hidden" name="idPenukaran" th:value="${rd.idPenukaran}">
+                                            <label class="small fw-bold mb-1 d-block">Tugaskan Kurir Pengantaran Reward:</label>
+                                            <select name="idPetugas" class="form-select form-select-sm mb-2" required>
+                                                <option th:each="ptg : ${petugasTersediaList}" th:value="${ptg.idPetugas}"
+                                                        th:text="${ptg.namaPetugas} + ' (' + ${ptg.noTelp} + ')'"></option>
+                                            </select>
+                                            <input type="text" name="pesanUntukPetugas" class="form-control form-control-sm mb-2" placeholder="Pesan instruksi pengantaran..." required>
+                                            <button type="submit" class="btn-jlt-secondary btn-sm w-100">Tugaskan Kurir</button>
+                                        </form>
+                                        <div th:if="${#lists.isEmpty(petugasTersediaList)}" class="badge-jlt-warning d-block text-center">
+                                            Tidak ada petugas tersedia saat ini.
+                                        </div>
+                                    </div>
+
+                                    <!-- Jika Sudah Ditugaskan / Dalam Perjalanan / Selesai -->
+                                    <div th:if="${rd.status != 'Request Masuk' and rd.status != 'Redeem Dikonfirmasi' and rd.status != 'Dibatalkan'}" class="small text-secondary">
+                                        <i data-lucide="truck" style="width:16px;height:16px;color:#B87B0A;"></i>
+                                        Kurir Bertugas: <strong th:text="${rd.namaPetugasTransient}">Andi</strong>
+                                    </div>
+                                    <div th:if="${rd.status == 'Dibatalkan'}" class="small text-danger">
+                                        <i data-lucide="x-circle" style="width:16px;height:16px;"></i> Redeem telah dibatalkan &amp; poin di-refund.
+                                    </div>
+                                </div>
+
+                                <!-- Tombol Aksi Detail, Update Bukti (Setelah Penugasan) & Batalkan -->
+                                <div class="col-12 col-lg-3 mobile-action-stack d-flex flex-wrap justify-content-lg-end gap-2">
+                                    <button type="button" class="btn-jlt-outline btn-sm"
+                                            th:attr="data-id=${rd.idPenukaran},data-resi=${rd.kodeResi},data-tanggal=${rd.tglPenukaran},data-penjual=${rd.namaPenjualTransient},data-petugas=${rd.namaPetugasTransient},data-item=${rd.jumlahUnit + 'x ' + rd.namaProdukTransient},data-poin=${rd.jumlahPoin},data-alamat=${rd.alamatPengantaran},data-catatan=${rd.catatan},data-status=${rd.status},data-ketbukti=${rd.keteranganBukti},data-foto=${rd.foto}"
+                                            onclick="bukaDetailRedeem(this)">
+                                        Detail &amp; Bukti
+                                    </button>
+                                    <button th:if="${rd.status == 'Petugas Ditugaskan' or rd.status == 'Petugas Dalam Perjalanan'}" type="button" class="btn-jlt-primary btn-sm"
+                                            th:attr="data-id=${rd.idPenukaran},data-resi=${rd.kodeResi},data-status=${rd.status}"
+                                            onclick="bukaModalUpdateRedeem(this)">
+                                        Update Status + Bukti Foto
+                                    </button>
+                                    <form th:if="${rd.status != 'Dibatalkan' and rd.status != 'Selesai'}" th:action="@{/pusat/penukaran/batal}" method="post"
+                                          onsubmit="return confirm('Apakah Anda yakin ingin membatalkan redeem ini? Poin dan stok produk akan dikembalikan.');">
+                                        <input type="hidden" name="idPenukaran" th:value="${rd.idPenukaran}">
+                                        <button type="submit" class="btn-jlt-outline btn-sm text-danger border-danger">Batalkan</button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- 5. SECTION KELOLA PETUGAS & HAK AKSES ROLE (Insert, Edit, Delete) -->
+            <!-- ============================================================ -->
+            <div th:if="${activeMenu == 'petugas'}">
+                <div class="jlt-card mb-4" id="cardFormPetugas">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                        <div>
+                            <h5 class="fw-bold mb-1" id="judulFormPetugas">Pendaftaran Petugas &amp; Pemberian Hak Akses Role</h5>
+                            <p class="small text-secondary mb-0">Kelola data kurir lapangan, kredensial login, kapasitas angkut, dan pemberian hak akses sistem (RBAC).</p>
+                        </div>
+                        <button type="button" id="btnBatalEditPetugas" onclick="resetFormPetugas()" class="btn-jlt-outline btn-sm d-none">
+                            Batal Edit
+                        </button>
+                    </div>
+                    <form th:action="@{/pusat/petugas/save}" method="post" class="row g-3">
+                        <input type="hidden" name="idPetugas" id="formPetugasId">
+                        <div class="col-12 col-sm-6 col-lg-4">
+                            <label class="form-label small fw-semibold mb-1">Nama Lengkap Petugas <span class="text-danger">*</span></label>
+                            <input type="text" name="namaPetugas" id="formPetugasNama" class="form-control" placeholder="Contoh: Andi Pratama" required>
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg-4">
+                            <label class="form-label small fw-semibold mb-1">Email Login (RBAC) <span class="text-danger">*</span></label>
+                            <input type="email" name="email" id="formPetugasEmail" class="form-control" placeholder="petugas@mail.com" required>
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg-4">
+                            <label class="form-label small fw-semibold mb-1">Password Akun</label>
+                            <input type="password" name="password" id="formPetugasPassword" class="form-control" placeholder="Password login petugas" required>
+                        </div>
+                        <div class="col-12 col-sm-6 col-lg-3">
+                            <label class="form-label small fw-semibold mb-1">Nomor Telepon / WA <span class="text-danger">*</span></label>
+                            <input type="tel" name="noTelp" id="formPetugasTelp" class="form-control" placeholder="081234567890" required>
+                        </div>
+                        <div class="col-6 col-sm-4 col-lg-2">
+                            <label class="form-label small fw-semibold mb-1">Kapasitas (L) <span class="text-danger">*</span></label>
+                            <input type="number" name="kapasitasMaksimal" id="formPetugasKapasitas" class="form-control" value="200" min="15" required>
+                        </div>
+                        <div class="col-6 col-sm-4 col-lg-2">
+                            <label class="form-label small fw-semibold mb-1">Role Akses <span class="text-danger">*</span></label>
+                            <select name="role" id="formPetugasRole" class="form-select jlt-select">
+                                <option value="PETUGAS">PETUGAS (Aktif)</option>
+                                <option value="NONAKTIF">NONAKTIF (Cabut Akses)</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-sm-4 col-lg-2">
+                            <label class="form-label small fw-semibold mb-1">Status Tugas</label>
+                            <select name="status" id="formPetugasStatus" class="form-select jlt-select">
+                                <option value="tersedia">Tersedia</option>
+                                <option value="tidak tersedia">Tidak Tersedia</option>
+                            </select>
+                        </div>
+                        <div class="col-12 col-lg-3">
+                            <label class="form-label small fw-semibold mb-1">Alamat Domisili <span class="text-danger">*</span></label>
+                            <input type="text" name="alamat" id="formPetugasAlamat" class="form-control" placeholder="Jl. Merdeka No. 10" required>
+                        </div>
+                        <div class="col-12 d-flex justify-content-end">
+                            <button type="submit" id="btnSubmitPetugas" class="btn-jlt-primary">
+                                <i data-lucide="shield-check" style="width:16px;height:16px;"></i> Daftarkan &amp; Beri Hak Akses
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Daftar Semua Petugas Kurir (1 Baris Penuh per Card + Tombol Edit & Hapus di Kanan + Bootstrap Pagination) -->
+                <div class="jlt-card mb-4">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                        <h5 class="fw-bold mb-0">Daftar Seluruh Petugas &amp; Hak Akses</h5>
+                        <span class="badge-jlt-success" th:text="'Total Petugas: ' + ${#lists.size(petugasList)}">1 Petugas</span>
+                    </div>
+
+                    <div class="d-flex flex-column gap-3" id="listPetugasContainer" th:if="${petugasList != null and !#lists.isEmpty(petugasList)}">
+                        <div class="petugas-row-card petugas-page-item" th:each="ptg : ${petugasList}">
+                            <div class="row align-items-center g-3">
+                                <div class="col-12 col-lg-4">
+                                    <div class="d-flex align-items-center gap-3">
+                                        <span class="rounded-circle d-inline-flex align-items-center justify-content-center flex-shrink-0 shadow-sm"
+                                              style="width:48px;height:48px;background:#FFCA00;color:#18181B;">
+                                            <i data-lucide="truck" style="width:22px;height:22px;"></i>
+                                        </span>
+                                        <div class="min-w-0">
+                                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                                <strong class="fs-6 text-truncate-1" th:text="${ptg.namaPetugas}">Andi Pratama</strong>
+                                                <span th:class="${ptg.role == 'NONAKTIF' ? 'badge-jlt-error' : 'badge-jlt-success'}" th:text="'Role: ' + ${ptg.role}">PETUGAS</span>
+                                            </div>
+                                            <small class="text-secondary d-block text-truncate-1" th:text="${ptg.email}">petugas@mail.com</small>
+                                            <div class="mt-1">
+                                                <span th:class="${ptg.status == 'tersedia' ? 'badge-jlt-success' : 'badge-jlt-warning'}"
+                                                      th:text="${ptg.status == 'tersedia' ? 'Tersedia' : 'Tidak Tersedia'}">Tersedia</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-lg-5">
+                                    <div class="row g-2 small">
+                                        <div class="col-sm-6">
+                                            <span class="text-secondary d-block">No. Telepon / WA:</span>
+                                            <strong th:text="${ptg.noTelp}">081234567890</strong>
+                                        </div>
+                                        <div class="col-sm-6">
+                                            <span class="text-secondary d-block">Beban Angkut Armada:</span>
+                                            <strong th:text="${ptg.bebanAngkut} + ' / ' + ${ptg.kapasitasMaksimal} + ' Liter'">0 / 200 L</strong>
+                                        </div>
+                                        <div class="col-12 text-truncate-1">
+                                            <span class="text-secondary">Alamat:</span>
+                                            <strong th:text="${ptg.alamat != null ? ptg.alamat : '-'}">Jl. Merdeka No. 10</strong>
+                                        </div>
+                                        <div class="col-12">
+                                            <div class="progress" style="height:7px;background:#FFFAE5;">
+                                                <div class="progress-bar"
+                                                     th:style="'width: ' + ${ptg.kapasitasMaksimal > 0 ? (ptg.bebanAngkut * 100 / ptg.kapasitasMaksimal) : 0} + '%; background:#FFCA00;'"
+                                                     role="progressbar"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-12 col-lg-3 d-flex flex-wrap justify-content-lg-end align-items-center gap-2">
+                                    <button type="button" class="btn-jlt-secondary btn-sm px-3"
+                                            th:attr="data-id=${ptg.idPetugas},data-nama=${ptg.namaPetugas},data-email=${ptg.email},data-telp=${ptg.noTelp},data-kapasitas=${ptg.kapasitasMaksimal.intValue()},data-alamat=${ptg.alamat},data-role=${ptg.role},data-status=${ptg.status}"
+                                            onclick="isiFormEditPetugas(this)">
+                                        <i data-lucide="edit-3" style="width:14px;height:14px;"></i> Edit
+                                    </button>
+                                    <form th:action="@{/pusat/petugas/reset-beban}" method="post" class="d-inline">
+                                        <input type="hidden" name="idPetugas" th:value="${ptg.idPetugas}">
+                                        <button type="submit" class="btn-jlt-outline btn-sm px-3"
+                                                onclick="return confirm('Reset beban angkut & kembalikan status petugas menjadi Tersedia?')">
+                                            Reset
+                                        </button>
+                                    </form>
+                                    <form th:action="@{/pusat/petugas/hapus}" method="post" class="d-inline"
+                                          onsubmit="return confirm('Hapus akun petugas ini secara permanen?')">
+                                        <input type="hidden" name="idPetugas" th:value="${ptg.idPetugas}">
+                                        <button type="submit" class="btn-jlt-outline btn-sm px-3 text-danger border-danger">
+                                            <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Hapus
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="listPetugasContainer-pagination"></div>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- 6. SECTION NOTIFIKASI PUSAT                                   -->
+            <!-- ============================================================ -->
+            <div th:if="${activeMenu == 'notifikasi'}">
+                <div class="jlt-card mb-4">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                        <div>
+                            <h5 class="fw-bold mb-1">Pusat Notifikasi Gudang Utama</h5>
+                            <p class="small text-secondary mb-0">Pemberitahuan otomatis untuk transaksi minyak baru, request redeem, dan update verifikasi kurir.</p>
+                        </div>
+                        <button type="button" onclick="aktifkanPushNotification()" class="btn-jlt-secondary btn-sm">
+                            <i data-lucide="bell-ring" style="width:16px;height:16px;"></i> Aktifkan Push Notification Browser
+                        </button>
+                    </div>
+                    <div class="d-flex flex-column gap-3" th:if="${notifikasiList != null and !#lists.isEmpty(notifikasiList)}">
+                        <div class="notif-item-card" th:each="n : ${notifikasiList}">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center mb-1 gap-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="badge-jlt-success" th:text="${n.tipe}">INFO</span>
+                                    <strong class="fs-6" th:text="${n.judul}">Judul Notifikasi</strong>
+                                </div>
+                                <small class="text-secondary" th:text="${n.tanggal}">2026-11-13</small>
+                            </div>
+                            <p class="small text-secondary mb-0" th:text="${n.pesan}"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- ============================================================ -->
+            <!-- 7. SECTION PROFIL & EDIT PROFIL GUDANG PUSAT                  -->
+            <!-- ============================================================ -->
+            <div th:if="${activeMenu == 'profile'}">
+                <div class="row g-4">
+                    <div class="col-lg-4">
+                        <div class="jlt-card text-center h-100">
+                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center fw-bold fs-2 mb-3 shadow-sm"
+                                 style="width:88px;height:88px;background:#FFCA00;color:#18181B;">
+                                <i data-lucide="building-2" style="width:40px;height:40px;"></i>
+                            </div>
+                            <h4 class="fw-bold mb-1" th:text="${pusat.namaGudang}">Gudang Bandung</h4>
+                            <p class="small text-secondary mb-2" th:text="${pusat.email}">pusat@mail.com</p>
+                            <span class="badge-jlt-success mb-3 d-inline-block">ROLE: SUPER ADMIN PUSAT</span>
+                            <div class="p-3 rounded-4 text-start mt-2" style="background:#FFFAE5;border:1px solid #FFE675;">
+                                <div class="small mb-2"><span class="text-secondary d-block">Nama Penanggung Jawab:</span><strong th:text="${pusat.nama}">Admin Gudang</strong></div>
+                                <div class="small mb-2"><span class="text-secondary d-block">No. Telepon Gudang:</span><strong th:text="${pusat.noTelepon}">081122334455</strong></div>
+                                <div class="small"><span class="text-secondary d-block">Alamat Gudang:</span><strong th:text="${pusat.alamat}">Jl. Soekarno Hatta No. 99</strong></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-8">
+                        <div class="jlt-card h-100">
+                            <h5 class="fw-bold mb-3 pb-2 border-bottom">Edit Profil Gudang Pusat</h5>
+                            <form th:action="@{/pusat/profile/update}" method="post" class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold small">Nama Gudang Pusat <span class="text-danger">*</span></label>
+                                    <input type="text" name="namaGudang" class="form-control" th:value="${pusat.namaGudang}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold small">Nama Admin / Penanggung Jawab <span class="text-danger">*</span></label>
+                                    <input type="text" name="nama" class="form-control" th:value="${pusat.nama}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold small">Email Login Pusat <span class="text-danger">*</span></label>
+                                    <input type="email" name="email" class="form-control" th:value="${pusat.email}" required>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold small">Nomor Telepon Gudang <span class="text-danger">*</span></label>
+                                    <input type="tel" name="noTelepon" class="form-control" th:value="${pusat.noTelepon}" required>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold small">Alamat Lengkap Gudang <span class="text-danger">*</span></label>
+                                    <textarea name="alamat" rows="2" class="form-control" required th:text="${pusat.alamat}"></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold small">Password Baru (Kosongkan jika tidak diubah)</label>
+                                    <input type="password" name="passwordBaru" class="form-control" placeholder="••••••••">
+                                </div>
+                                <div class="col-12 d-flex justify-content-end pt-2">
+                                    <button type="submit" class="btn-jlt-primary px-5">Simpan Perubahan Profil Pusat</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL 1: UPDATE STATUS & BUKTI FOTO TRANSAKSI JUAL MINYAK OLEH PUSAT -->
+    <div class="modal fade" id="modalBuktiUpdate" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold">Update Status &amp; Upload Bukti (<span id="modalUpdateResiLabel">JLT-000001</span>)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/pusat/update-transaksi}" method="post" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <input type="hidden" name="idTransaksi" id="modalUpdateIdTrx">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Volume Minyak Aktual (Minimal 15 Liter)</label>
+                            <input type="number" step="1" min="15" name="jumlahMinyak" id="modalUpdateLiter" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Pilih Status Transaksi Baru</label>
+                            <select name="status" id="modalUpdateStatus" class="form-select jlt-select" required>
+                                <option value="Transaksi Masuk">Transaksi Masuk</option>
+                                <option value="Penugasan Kurir">Penugasan Kurir</option>
+                                <option value="Penjemputan">Penjemputan</option>
+                                <option value="Diverifikasi Petugas">Diverifikasi Petugas</option>
+                                <option value="Selesai">Selesai</option>
+                                <option value="Dibatalkan">Dibatalkan</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Keterangan Bukti Update</label>
+                            <textarea name="keteranganBukti" class="form-control" rows="2" placeholder="Tuliskan hasil pengecekan / timbangan..." required></textarea>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold">Ambil Foto Kamera / Upload File Bukti</label>
+                            <input type="file" name="fotoBukti" accept="image/*" capture="environment" class="form-control" required>
+                            <small class="text-secondary">Foto bukti penimbangan atau pembatalan transaksi.</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top">
+                        <button type="button" class="btn-jlt-outline" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn-jlt-primary">Simpan Update &amp; Bukti</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 2: UPDATE STATUS & BUKTI FOTO REDEEM POIN OLEH PUSAT -->
+    <div class="modal fade" id="modalRedeemUpdate" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold">Update Status Redeem &amp; Bukti (<span id="modalRedeemResiLabel">RDM-000001</span>)</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/pusat/redeem/update}" method="post" enctype="multipart/form-data">
+                    <div class="modal-body">
+                        <input type="hidden" name="idPenukaran" id="modalRedeemId">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Pilih Status Redeem Baru</label>
+                            <select name="status" id="modalRedeemStatusSelect" class="form-select jlt-select" required>
+                                <option value="Redeem Dikonfirmasi">Redeem Dikonfirmasi</option>
+                                <option value="Petugas Ditugaskan">Petugas Ditugaskan</option>
+                                <option value="Petugas Dalam Perjalanan">Petugas Dalam Perjalanan</option>
+                                <option value="Selesai">Selesai</option>
+                                <option value="Dibatalkan">Dibatalkan</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Keterangan Bukti Update</label>
+                            <textarea name="keteranganBukti" class="form-control" rows="2" placeholder="Catatan bukti tahapan redeem..." required></textarea>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold">Ambil Foto Kamera / Upload File Bukti</label>
+                            <input type="file" name="fotoBukti" accept="image/*" capture="environment" class="form-control" required>
+                            <small class="text-secondary">Foto bukti pengemasan produk atau tanda serah terima.</small>
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top">
+                        <button type="button" class="btn-jlt-outline" data-bs-dismiss="modal">Tutup</button>
+                        <button type="submit" class="btn-jlt-primary">Simpan Update Redeem</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- SLIDE-OUT SIDE PANEL DETAIL LENGKAP TRANSAKSI & BUKTI FOTO -->
+    <div id="sidePanelBackdrop" class="side-panel-backdrop" onclick="tutupDetailTransaksi()"></div>
+    <div id="sidePanelDrawer" class="side-panel-drawer">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold mb-0">Transaction Details</h5>
+            <button type="button" class="btn-close-jlt" onclick="tutupDetailTransaksi()">✕</button>
+        </div>
+        <div class="jlt-card mb-3" style="background:#FFFAE5;border-color:#FFE675;">
+            <p class="mb-2"><strong>Nomor Resi:</strong> <span id="spResi">-</span></p>
+            <p class="mb-2"><strong>Tanggal:</strong> <span id="spTanggal">-</span></p>
+            <p class="mb-2"><strong>Nama Penjual:</strong> <span id="spPenjual">-</span></p>
+            <p class="mb-2"><strong>Nama Petugas:</strong> <span id="spPetugas">-</span></p>
+            <p class="mb-2"><strong>Alamat:</strong> <span id="spLokasi" class="text-break">-</span></p>
+            <p class="mb-2"><strong>Volume / Item:</strong> <span id="spLiter">-</span></p>
+            <p class="mb-2"><strong>Harga / Poin:</strong> <span id="spTotal" class="fw-bold">-</span></p>
+            <p class="mb-2"><strong>Catatan:</strong> <span id="spCatatan" class="text-break">-</span></p>
+            <p class="mb-2"><strong>Status Terkini:</strong> <span id="spStatus" class="fw-bold">-</span></p>
+            <hr>
+            <p class="mb-2"><strong>Detail Bukti Update:</strong><br><span id="spKetBukti" class="small text-break">-</span></p>
+            <div>
+                <strong>Foto Bukti:</strong>
+                <div id="spNoFoto" class="small text-secondary fst-italic mt-1">Belum ada foto bukti diunggah.</div>
+                <img id="spFotoBukti" src="" alt="Bukti Transaksi" class="img-fluid rounded-3 border mt-2 d-none">
+            </div>
+        </div>
+        <button type="button" onclick="window.print()" class="btn-jlt-primary w-100">Cetak Bukti Transaksi Digital (PDF)</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/7.3.2/mdb.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    <script th:src="@{/js/main.js}"></script>
+
+    <!-- Inisialisasi Grafik Overview -->
+    <script th:inline="javascript">
+        const grafikPenjualanData = /*[[${grafikPenjualan}]]*/ [];
+        const grafikRedeemData = /*[[${grafikRedeem}]]*/ [];
+
+        // Init chart penjualan
+        const ctxP = document.getElementById('grafikPenjualanChart');
+        if (ctxP) {
+            new Chart(ctxP, {
+                type: 'bar',
+                data: {
+                    labels: grafikPenjualanData.map(function(d) { return d.label; }),
+                    datasets: [{
+                        label: 'Transaksi Penjualan',
+                        data: grafikPenjualanData.map(function(d) { return d.jumlah; }),
+                        backgroundColor: '#FFCA00',
+                        borderColor: '#E0B100',
+                        borderWidth: 2,
+                        borderRadius: 6
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                }
+            });
+        }
+
+        // Init chart redeem
+        const ctxR = document.getElementById('grafikRedeemChart');
+        if (ctxR) {
+            new Chart(ctxR, {
+                type: 'line',
+                data: {
+                    labels: grafikRedeemData.map(function(d) { return d.label; }),
+                    datasets: [{
+                        label: 'Aktivitas Redeem',
+                        data: grafikRedeemData.map(function(d) { return d.jumlah; }),
+                        backgroundColor: 'rgba(255, 202, 0, 0.15)',
+                        borderColor: '#FFCA00',
+                        borderWidth: 2,
+                        tension: 0.4,
+                        fill: true,
+                        pointBackgroundColor: '#E0B100'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: { legend: { display: false } },
+                    scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                }
+            });
+        }
+    </script>
+</body>
+</html>

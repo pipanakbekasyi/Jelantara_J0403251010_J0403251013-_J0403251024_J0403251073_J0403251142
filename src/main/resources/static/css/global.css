@@ -1,0 +1,502 @@
+/* Mengimpor font Poppins sebagai satu-satunya font family di seluruh antarmuka */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+/* Deklarasi Design Tokens Jelantara (Tanpa warna hijau sama sekali) */
+:root {
+    --font-family-base: 'Poppins', sans-serif;
+    --color-primary-50: #FFFAE5;
+    --color-primary-100: #FFF3B8;
+    --color-primary-200: #FFE675;
+    --color-primary-400: #FFD426;
+    --color-primary-500: #FFCA00;
+    --color-primary-600: #E0B100;
+    --color-primary-800: #926008;
+    --color-secondary-500: #F7B32E;
+    --color-secondary-600: #DF9B18;
+    --color-secondary-700: #B87B0A;
+    --color-background: #FFFFFF;
+    --color-surface: #FFFFFF;
+    --color-text-primary: #18181B;
+    --color-text-secondary: #52525B;
+    --color-border: #E4E4E7;
+    --color-warning: #D97706;
+    --color-error: #DC2626;
+    --shadow-sm: 0 2px 8px rgba(24, 24, 27, 0.05);
+    --shadow-md: 0 6px 20px rgba(24, 24, 27, 0.08);
+}
+
+body {
+    font-family: var(--font-family-base);
+    background-color: var(--color-background) !important;
+    color: var(--color-text-primary);
+    margin: 0;
+}
+
+.btn-jlt-primary {
+    background-color: var(--color-primary-500);
+    color: var(--color-text-primary);
+    font-weight: 600;
+    border-radius: 9999px;
+    padding: 10px 24px;
+    min-height: 44px;
+    border: none;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+    cursor: pointer;
+}
+.btn-jlt-primary:hover {
+    background-color: var(--color-secondary-500);
+    color: var(--color-text-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(247, 179, 46, 0.35);
+}
+.btn-jlt-primary:active {
+    transform: translateY(0) scale(0.98);
+}
+
+.btn-jlt-secondary {
+    background-color: var(--color-secondary-500);
+    color: var(--color-text-primary);
+    font-weight: 600;
+    border-radius: 9999px;
+    padding: 10px 24px;
+    min-height: 44px;
+    border: none;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+    cursor: pointer;
+}
+.btn-jlt-secondary:hover {
+    background-color: var(--color-primary-500);
+    color: var(--color-text-primary);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 14px rgba(255, 202, 0, 0.35);
+}
+.btn-jlt-secondary:active {
+    transform: translateY(0) scale(0.98);
+}
+
+.btn-jlt-outline {
+    background-color: var(--color-surface);
+    color: var(--color-text-primary);
+    border: 2px solid var(--color-secondary-500);
+    font-weight: 600;
+    border-radius: 9999px;
+    padding: 8px 20px;
+    min-height: 44px;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+}
+.btn-jlt-outline:hover {
+    background-color: var(--color-primary-50);
+    color: var(--color-text-primary);
+    border-color: var(--color-secondary-600);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(24, 24, 27, 0.08);
+}
+.btn-jlt-outline:active {
+    transform: translateY(0) scale(0.98);
+}
+
+.btn-round-add {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background-color: var(--color-secondary-500);
+    color: var(--color-text-primary);
+    border: none;
+    font-weight: 700;
+    font-size: 22px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.22s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    text-decoration: none;
+}
+.btn-round-add:hover {
+    background-color: var(--color-primary-500);
+    transform: translateY(-2px) scale(1.08);
+    box-shadow: 0 4px 12px rgba(255, 202, 0, 0.4);
+    color: var(--color-text-primary);
+}
+.btn-round-add:active {
+    transform: translateY(0) scale(0.96);
+}
+
+/* Utilities: Text Truncation with Ellipsis (...) */
+.text-truncate-1 {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    max-width: 100%;
+}
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+}
+.text-truncate-3 {
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+}
+
+.jlt-card {
+    background-color: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 16px;
+    box-shadow: var(--shadow-sm);
+    padding: 24px;
+}
+
+.badge-jlt-success {
+    background-color: var(--color-primary-50);
+    color: var(--color-primary-800);
+    border: 1px solid var(--color-primary-400);
+    padding: 6px 14px;
+    border-radius: 9999px;
+    font-weight: 600;
+    font-size: 12px;
+}
+.badge-jlt-warning {
+    background-color: #FEF3C7;
+    color: var(--color-warning);
+    border: 1px solid #F59E0B;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    font-weight: 600;
+    font-size: 12px;
+}
+.badge-jlt-error {
+    background-color: #FEE2E2;
+    color: var(--color-error);
+    border: 1px solid #EF4444;
+    padding: 6px 14px;
+    border-radius: 9999px;
+    font-weight: 600;
+    font-size: 12px;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: var(--color-primary-500) !important;
+    box-shadow: 0 0 0 3px rgba(255, 202, 0, 0.28) !important;
+}
+
+.app-layout {
+    display: flex;
+    min-height: 100vh;
+    background-color: #FFFFFF;
+}
+.app-sidebar {
+    width: 270px;
+    flex-shrink: 0;
+    background-color: #FFFFFF;
+    border-right: 1px solid var(--color-border);
+    display: flex;
+    flex-direction: column;
+    padding: 24px 16px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+}
+.sidebar-nav-link {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 16px;
+    border-radius: 12px;
+    color: var(--color-text-primary);
+    font-weight: 500;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    margin-bottom: 6px;
+}
+.sidebar-nav-link:hover {
+    background-color: var(--color-primary-50);
+    color: var(--color-text-primary);
+}
+.sidebar-nav-link.active {
+    background-color: var(--color-primary-500);
+    color: var(--color-text-primary);
+    font-weight: 600;
+    box-shadow: var(--shadow-sm);
+}
+.app-main-content {
+    flex: 1;
+    min-width: 0;
+    background-color: #FFFFFF;
+}
+
+.swal2-icon.swal2-success {
+    border-color: #FFCA00 !important;
+    color: #926008 !important;
+}
+.swal2-icon.swal2-success [class^=swal2-success-line] {
+    background-color: #F7B32E !important;
+}
+.swal2-icon.swal2-success .swal2-success-ring {
+    border: .25em solid rgba(255, 202, 0, .3) !important;
+}
+
+@media (max-width: 767.98px) {
+    .jlt-card { padding: 16px; }
+}
+
+
+/* Utility Pemotong Teks & Anti-Overflow agar tidak pernah keluar dari Card */
+.jlt-card {
+    max-width: 100%;
+    overflow: hidden;
+    word-wrap: break-word;
+}
+.text-truncate-1 {
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+}
+.text-truncate-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    word-break: break-word;
+}
+
+/* Responsif Khusus Layar Handphone (< 768px): Ubah susunan tombol & form menjadi vertikal penuh */
+@media (max-width: 767.98px) {
+    .jlt-card {
+        padding: 16px;
+        border-radius: 14px;
+    }
+    .mobile-action-stack {
+        display: flex !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        width: 100% !important;
+        gap: 8px !important;
+    }
+    .mobile-action-stack > .btn-jlt-primary,
+    .mobile-action-stack > .btn-jlt-secondary,
+    .mobile-action-stack > .btn-jlt-outline,
+    .mobile-action-stack > form,
+    .mobile-action-stack > form > button {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+    .btn-jlt-primary, .btn-jlt-secondary, .btn-jlt-outline {
+        padding: 10px 16px;
+        font-size: 14px;
+        max-width: 100%;
+    }
+}
+
+
+/* Styling Input Berikon & Tombol untuk Halaman Lengkapi Profil & Form */
+.jlt-input-group {
+    position: relative;
+    width: 100%;
+}
+.jlt-input-group .jlt-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--color-primary-800);
+    pointer-events: none;
+}
+.jlt-input {
+    width: 100%;
+    min-height: 46px;
+    background-color: #FFFFFF;
+    border: 1.5px solid var(--color-border);
+    border-radius: 12px;
+    padding: 10px 16px 10px 46px;
+    font-size: 14px;
+    color: var(--color-text-primary);
+    transition: all 0.2s ease;
+}
+.jlt-input:focus {
+    outline: none;
+    border-color: var(--color-primary-500);
+    box-shadow: 0 0 0 3px rgba(255, 202, 0, 0.28);
+}
+.btn-pill-primary {
+    background-color: var(--color-primary-500);
+    color: var(--color-text-primary);
+    font-weight: 600;
+    border-radius: 9999px;
+    padding: 12px 24px;
+    min-height: 46px;
+    border: none;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    text-decoration: none;
+    transition: all 0.2s ease;
+}
+.btn-pill-primary:hover {
+    background-color: var(--color-secondary-500);
+    color: var(--color-text-primary);
+}
+
+/* Kartu Petugas yang Rapi dan Proporsional di Laptop maupun Handphone */
+.petugas-manage-card {
+    background-color: #FFFFFF;
+    border: 1.5px solid var(--color-border);
+    border-radius: 16px;
+    padding: 20px;
+    box-shadow: var(--shadow-sm);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    height: 100%;
+    transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+.petugas-manage-card:hover {
+    border-color: var(--color-primary-400);
+    box-shadow: var(--shadow-md);
+}
+.petugas-info-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+    background-color: var(--color-primary-50);
+    border: 1px solid var(--color-primary-200);
+    border-radius: 12px;
+    padding: 12px;
+    margin: 12px 0;
+    font-size: 13px;
+}
+.petugas-action-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding-top: 12px;
+    border-top: 1px solid var(--color-border);
+}
+@media (max-width: 575.98px) {
+    .petugas-action-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Kartu Notifikasi Terpadu */
+.notif-item-card {
+    background-color: #FFFFFF;
+    border: 1.5px solid var(--color-border);
+    border-left: 5px solid var(--color-primary-500);
+    border-radius: 14px;
+    padding: 16px 20px;
+    box-shadow: var(--shadow-sm);
+}
+.notif-badge-dot {
+    background-color: var(--color-secondary-500);
+    color: #18181B;
+    font-weight: 700;
+    font-size: 11px;
+    padding: 2px 8px;
+    border-radius: 9999px;
+    margin-left: auto;
+}
+
+
+/* Custom Bootstrap Styled Select Dropdown (Bukan Dropdown Polosan) */
+.form-select, .jlt-select {
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-color: #FFFFFF;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='18' height='18' viewBox='0 0 24 24' fill='none' stroke='%23926008' stroke-width='2.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 14px center;
+    background-size: 18px 18px;
+    border: 1.5px solid var(--color-primary-400) !important;
+    border-radius: 12px !important;
+    padding: 10px 42px 10px 16px !important;
+    font-weight: 500;
+    color: var(--color-text-primary);
+    min-height: 45px;
+    box-shadow: 0 2px 6px rgba(255, 202, 0, 0.10);
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+.form-select:hover, .jlt-select:hover {
+    border-color: var(--color-secondary-500) !important;
+    background-color: var(--color-primary-50);
+}
+.form-select:focus, .jlt-select:focus {
+    outline: none;
+    border-color: var(--color-primary-500) !important;
+    box-shadow: 0 0 0 4px rgba(255, 202, 0, 0.28) !important;
+    background-color: #FFFFFF;
+}
+.jlt-input-group .form-select {
+    padding-left: 46px !important;
+}
+
+/* Row-Based Card Layout untuk Kelola Petugas (1 Baris Penuh di Laptop, Tombol Edit & Hapus di Kanan) */
+.petugas-row-card {
+    background-color: #FFFFFF;
+    border: 1.5px solid var(--color-border);
+    border-left: 6px solid var(--color-primary-500);
+    border-radius: 16px;
+    padding: 18px 22px;
+    box-shadow: var(--shadow-sm);
+    transition: all 0.2s ease;
+}
+.petugas-row-card:hover {
+    border-color: var(--color-primary-400);
+    box-shadow: var(--shadow-md);
+}
+
+/* Bootstrap Pagination Custom Yellow-Gold Jelantara */
+.jlt-pagination .page-link {
+    color: var(--color-text-primary);
+    background-color: #FFFFFF;
+    border: 1.5px solid var(--color-border);
+    font-weight: 600;
+    margin: 0 3px;
+    border-radius: 10px !important;
+    padding: 6px 14px;
+    transition: all 0.2s ease;
+}
+.jlt-pagination .page-link:hover {
+    background-color: var(--color-primary-50);
+    border-color: var(--color-primary-400);
+    color: var(--color-text-primary);
+}
+.jlt-pagination .page-item.active .page-link {
+    background-color: var(--color-primary-500) !important;
+    border-color: var(--color-primary-500) !important;
+    color: #18181B !important;
+    box-shadow: var(--shadow-sm);
+}
+.jlt-pagination .page-item.disabled .page-link {
+    opacity: 0.5;
+    pointer-events: none;
+}

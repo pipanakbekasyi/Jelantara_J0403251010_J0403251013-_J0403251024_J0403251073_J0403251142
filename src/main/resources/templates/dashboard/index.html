@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Check It Now - Dashboard Penjual Jelantara</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/global.css}">
+    <link rel="stylesheet" th:href="@{/css/penjual.css}">
+</head>
+<body th:attr="data-flash-success=${flashSuccess},data-flash-error=${flashError}">
+
+    <div th:replace="~{fragments/navbar :: main-navbar('penjual')}"></div>
+
+    <div class="container py-4">
+        <div class="jlt-card mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+            <div>
+                <span class="badge-jlt-success">RBAC Verified • Akun Penjual</span>
+                <h3 class="fw-bold mt-1 mb-0">Kelola Penjemputan, Pelacakan &amp; Tukar Poin</h3>
+            </div>
+            <div class="d-flex align-items-center gap-3">
+                <div class="text-end">
+                    <h6 class="fw-bold mb-0 text-truncate-1" th:text="${penjual.namaPenjual}">Budi Santoso</h6>
+                    <span class="badge-jlt-success" th:text="'Saldo: ' + ${penjual.poin} + ' Poin'">350 Poin</span>
+                </div>
+                <a th:href="@{/penjual/profile}" class="rounded-circle d-flex align-items-center justify-content-center fw-bold fs-5 text-decoration-none shadow-sm"
+                   style="width:48px;height:48px;background:#FFCA00;color:#18181B;" title="Buka Profil Saya">
+                    <span th:text="${#strings.substring(penjual.namaPenjual, 0, 2).toUpperCase()}">BS</span>
+                </a>
+            </div>
+        </div>
+
+        <ul class="nav segmented-tabs mb-4" role="tablist">
+            <li class="nav-item flex-fill">
+                <button class="nav-link w-100" th:classappend="${activeTab == 'order' ? 'active' : ''}"
+                        data-bs-toggle="pill" data-bs-target="#tabOrder" type="button">Order Pickup</button>
+            </li>
+            <li class="nav-item flex-fill">
+                <button class="nav-link w-100" th:classappend="${activeTab == 'redeem' ? 'active' : ''}"
+                        data-bs-toggle="pill" data-bs-target="#tabRedeem" type="button">Redeem Poin</button>
+            </li>
+            <li class="nav-item flex-fill">
+                <button class="nav-link w-100" th:classappend="${activeTab == 'tracker' ? 'active' : ''}"
+                        data-bs-toggle="pill" data-bs-target="#tabTracker" type="button">Tracker Resi</button>
+            </li>
+            <li class="nav-item flex-fill">
+                <button class="nav-link w-100" th:classappend="${activeTab == 'transaction' ? 'active' : ''}"
+                        data-bs-toggle="pill" data-bs-target="#tabTransaction" type="button">Riwayat Transaksi</button>
+            </li>
+        </ul>
+
+        <div class="tab-content">
+            <!-- TAB 1: ORDER PICKUP FORM -->
+            <div class="tab-pane fade" th:classappend="${activeTab == 'order' ? 'show active' : ''}" id="tabOrder">
+                <div class="jlt-card">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold mb-0">Buat Pesanan Penjemputan Minyak Baru</h5>
+                        <span class="badge-jlt-success">Minimal 15 Liter</span>
+                    </div>
+                    <form th:action="@{/penjual/order}" method="post">
+                        <input type="hidden" id="hargaAcuanLiter" th:value="${hargaAcuan}">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Jumlah Liter Minyak Jelantah (Min. 15 Liter)</label>
+                                <input type="number" step="1" min="15" name="jumlahMinyak" id="inputJumlahMinyak"
+                                       oninput="hitungEstimasiOrder()" class="form-control" value="15" required>
+                                <small class="text-secondary">Masukkan minimal 15 liter (contoh: 15, 16, 17, 18, dst).</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Estimasi Uang &amp; Poin Otomatis (FR-06)</label>
+                                <div class="p-2 rounded-3 d-flex justify-content-between align-items-center" style="background:#FFFAE5;border:1px solid #FFE675;min-height:44px;">
+                                    <strong id="estimasiRupiah">Rp 90.000</strong>
+                                    <span class="badge-jlt-success" id="estimasiPoin">+150 Poin</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="p-3 rounded-4 mb-3" style="background:#FFFAE5;border:1px solid #FFE675;">
+                            <h6 class="fw-bold mb-2"><i data-lucide="wallet" style="width:16px;height:16px;color:#926008;"></i> Rekening / E-Wallet Pencairan Dana</h6>
+                            <div class="row g-3">
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold mb-1">Metode Pencairan <span class="text-danger">*</span></label>
+                                    <select name="metodePembayaran" id="metodePembayaranOrder"
+                                            onchange="updatePilihanPenyedia('metodePembayaranOrder','namaPenyediaOrder','labelNomorOrder','inputNomorOrder')"
+                                            class="form-select jlt-select" required>
+                                        <option value="Bank" th:selected="${penjual.metodePembayaran == null or penjual.metodePembayaran == 'Bank'}">Transfer Bank</option>
+                                        <option value="E-Wallet" th:selected="${penjual.metodePembayaran == 'E-Wallet'}">E-Wallet</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold mb-1">Pilih Bank / E-Wallet <span class="text-danger">*</span></label>
+                                    <select name="namaPenyedia" id="namaPenyediaOrder"
+                                            th:attr="data-selected=${penjual.namaPenyedia}"
+                                            class="form-select jlt-select" required>
+                                        <option value="BCA">Bank BCA</option>
+                                        <option value="Mandiri">Bank Mandiri</option>
+                                        <option value="BRI">Bank BRI</option>
+                                        <option value="BNI">Bank BNI</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-4">
+                                    <label class="form-label small fw-semibold mb-1" id="labelNomorOrder">Nomor Rekening Bank <span class="text-danger">*</span></label>
+                                    <input type="text" name="noRekeningTujuan" id="inputNomorOrder" class="form-control"
+                                           th:value="${penjual.noRekening}" placeholder="Masukkan nomor rekening / e-wallet" required>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold d-block">Pilih Lokasi Penjemputan <span class="text-danger">*</span></label>
+                            <div class="row g-2 mb-2">
+                                <div class="col-sm-6">
+                                    <label class="jlt-card p-3 d-flex align-items-center gap-2 w-100" style="cursor:pointer;background:#FFFAE5;border-color:#FFE675;">
+                                        <input type="radio" name="tipeAlamatOrder" value="SAAT_INI" checked class="form-check-input mt-0"
+                                               onchange="togglePilihanAlamat('tipeAlamatOrder','boxAlamatOrderSaatIni','boxAlamatOrderKustom','inputAlamatOrderKustom')">
+                                        <span class="fw-semibold small">Gunakan Alamat Saat Ini (Sesuai Profil)</span>
+                                    </label>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="jlt-card p-3 d-flex align-items-center gap-2 w-100" style="cursor:pointer;">
+                                        <input type="radio" name="tipeAlamatOrder" value="KUSTOM" class="form-check-input mt-0"
+                                               onchange="togglePilihanAlamat('tipeAlamatOrder','boxAlamatOrderSaatIni','boxAlamatOrderKustom','inputAlamatOrderKustom')">
+                                        <span class="fw-semibold small">Isi Alamat Penjemputan Kustom Baru</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div id="boxAlamatOrderSaatIni" class="p-3 rounded-3 small" style="background:#FAFAFA;border:1px solid #E4E4E7;">
+                                <strong>Alamat Profil Saat Ini:</strong> <span th:text="${penjual.alamat != null and !penjual.alamat.isEmpty() ? penjual.alamat : 'Belum diatur di profil'}">Jl. Melati No. 10</span>
+                            </div>
+                            <div id="boxAlamatOrderKustom" class="d-none mt-2">
+                                <textarea name="lokasiKustom" id="inputAlamatOrderKustom" class="form-control" rows="2" placeholder="Masukkan alamat penjemputan kustom lengkap beserta patokan..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Catatan Tambahan untuk Kurir</label>
+                            <input type="text" name="catatan" class="form-control" placeholder="Contoh: Minyak disimpan dalam jerigen tertutup di teras">
+                        </div>
+                        <button type="submit" class="btn-jlt-primary px-5 py-3 w-100 w-sm-auto">Buat Pesanan</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- TAB 2: REDEEM POIN FORM -->
+            <div class="tab-pane fade" th:classappend="${activeTab == 'redeem' ? 'show active' : ''}" id="tabRedeem">
+                <div class="jlt-card mb-4">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div>
+                            <h5 class="fw-bold mb-0">Form Permintaan Tukar Poin Reward</h5>
+                            <small class="text-secondary">Pilih produk reward, tentukan alamat pengantaran, dan ajukan penukaran poin.</small>
+                        </div>
+                        <span class="badge-jlt-success" th:text="'Saldo Anda: ' + ${penjual.poin} + ' Poin'">350 Poin</span>
+                    </div>
+                    <form th:action="@{/penjual/redeem}" method="post">
+                        <div class="row g-3 mb-3">
+                            <div class="col-md-5">
+                                <label class="form-label fw-semibold">Pilih Produk Olahan</label>
+                                <select name="produkId" id="selectProdukRedeem" onchange="hitungEstimasiRedeemForm()" class="form-select jlt-select" required>
+                                    <option th:each="p : ${produkList}" th:value="${p.idProduk}"
+                                            th:selected="${selectedProdukId != null and selectedProdukId == p.idProduk}"
+                                            th:attr="data-poin=${p.hargaPoin}"
+                                            th:text="${p.namaProduk} + ' (' + ${#numbers.formatDecimal(p.hargaPoin, 0, 'POINT', 0, 'COMMA')} + ' Poin • Stok: ' + ${p.stok} + ')'"></option>
+                                </select>
+                            </div>
+                            <div class="col-md-3">
+                                <label class="form-label fw-semibold">Jumlah Unit (Qty)</label>
+                                <input type="number" step="1" min="1" name="qty" id="inputQtyRedeem"
+                                       oninput="hitungEstimasiRedeemForm()" class="form-control" value="1" required>
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-semibold">Total Poin Dibutuhkan</label>
+                                <div class="p-2 rounded-3 d-flex justify-content-between align-items-center" style="background:#FFFAE5;border:1px solid #FFE675;min-height:44px;">
+                                    <span class="small text-secondary">Potongan Poin:</span>
+                                    <strong id="estimasiPoinRedeem" style="color:#926008;">150 Poin</strong>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold d-block">Pilih Alamat Pengantaran Produk Reward <span class="text-danger">*</span></label>
+                            <div class="row g-2 mb-2">
+                                <div class="col-sm-6">
+                                    <label class="jlt-card p-3 d-flex align-items-center gap-2 w-100" style="cursor:pointer;background:#FFFAE5;border-color:#FFE675;">
+                                        <input type="radio" name="tipeAlamatRedeem" value="SAAT_INI" checked class="form-check-input mt-0"
+                                               onchange="togglePilihanAlamat('tipeAlamatRedeem','boxAlamatRedeemSaatIni','boxAlamatRedeemKustom','inputAlamatRedeemKustom')">
+                                        <span class="fw-semibold small">Gunakan Alamat Saat Ini (Sesuai Profil)</span>
+                                    </label>
+                                </div>
+                                <div class="col-sm-6">
+                                    <label class="jlt-card p-3 d-flex align-items-center gap-2 w-100" style="cursor:pointer;">
+                                        <input type="radio" name="tipeAlamatRedeem" value="KUSTOM" class="form-check-input mt-0"
+                                               onchange="togglePilihanAlamat('tipeAlamatRedeem','boxAlamatRedeemSaatIni','boxAlamatRedeemKustom','inputAlamatRedeemKustom')">
+                                        <span class="fw-semibold small">Isi Alamat Pengantaran Kustom Baru</span>
+                                    </label>
+                                </div>
+                            </div>
+                            <div id="boxAlamatRedeemSaatIni" class="p-3 rounded-3 small" style="background:#FAFAFA;border:1px solid #E4E4E7;">
+                                <strong>Alamat Profil Saat Ini:</strong> <span th:text="${penjual.alamat != null and !penjual.alamat.isEmpty() ? penjual.alamat : 'Belum diatur di profil'}">Jl. Melati No. 10</span>
+                            </div>
+                            <div id="boxAlamatRedeemKustom" class="d-none mt-2">
+                                <textarea name="alamatKustom" id="inputAlamatRedeemKustom" class="form-control" rows="2" placeholder="Masukkan alamat pengantaran reward kustom lengkap..."></textarea>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold">Catatan Pengiriman Produk</label>
+                            <input type="text" name="catatanRedeem" class="form-control" placeholder="Contoh: Titipkan di pos satpam jika sedang di luar">
+                        </div>
+                        <button type="submit" class="btn-jlt-primary px-5 py-3 w-100 w-sm-auto">Ajukan Permintaan Redeem</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- TAB 3: LOGISTICS TRACKER -->
+            <div class="tab-pane fade" th:classappend="${activeTab == 'tracker' ? 'show active' : ''}" id="tabTracker">
+                <div class="jlt-card">
+                    <h5 class="fw-bold mb-2">Lacak Status Pesanan dengan Nomor Resi</h5>
+                    <p class="small text-secondary mb-3">Masukkan nomor resi transaksi Jual Minyak (contoh: <strong>JLT-000001</strong>) atau Redeem Poin (contoh: <strong>RDM-000001</strong>).</p>
+
+                    <form th:action="@{/check-it-now}" method="get" class="row g-2 mb-4">
+                        <input type="hidden" name="tab" value="tracker">
+                        <div class="col-sm-9">
+                            <input type="text" name="resi" class="form-control rounded-pill px-4 py-2"
+                                   th:value="${searchedResi}" placeholder="Masukkan Nomor Resi (Contoh: JLT-000001 atau RDM-000001)" required>
+                        </div>
+                        <div class="col-sm-3">
+                            <button type="submit" class="btn-jlt-primary w-100">Cari Resi</button>
+                        </div>
+                    </form>
+
+                    <div th:if="${resiUnauthorized != null}" class="text-center py-4 rounded-4 mb-3" style="background:#FEE2E2;border:1px solid #EF4444;color:#DC2626;">
+                        <h6 class="fw-bold mb-1">Akses Ditolak!</h6>
+                        <p class="small mb-0" th:text="${resiUnauthorized}">Nomor resi tersebut bukan milik akun Anda.</p>
+                    </div>
+
+                    <div th:if="${trackedOrder == null and trackedRedeem == null and !resiNotFound and resiUnauthorized == null}" class="text-center py-4 rounded-4" style="background:#FFFAE5;border:1px dashed #FFE675;">
+                        <i data-lucide="search" style="width:36px;height:36px;color:#B87B0A;" class="mb-2"></i>
+                        <h6 class="fw-bold mb-1">Silakan Cari Nomor Resi Terlebih Dahulu</h6>
+                        <p class="small text-secondary mb-0">Timeline pelacakan akan tampil setelah Anda memasukkan kode resi yang valid.</p>
+                    </div>
+
+                    <div th:if="${resiNotFound}" class="text-center py-4 rounded-4" style="background:#FEE2E2;border:1px solid #EF4444;color:#DC2626;">
+                        <h6 class="fw-bold mb-1">Nomor Resi Tidak Ditemukan!</h6>
+                        <p class="small mb-0">Pastikan kode resi yang Anda masukkan sudah benar (lihat daftar resi pada tab Riwayat Transaksi).</p>
+                    </div>
+
+                    <div th:if="${trackedOrder != null}">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pt-2 border-top gap-2">
+                            <div>
+                                <span class="badge" style="background:#FFF3B8;color:#926008;border:1px solid #FFE675;">Jual Minyak</span>
+                                <span class="fw-bold fs-5 ms-1" th:text="'Resi: ' + ${trackedOrder.kodeResi}">JLT-000001</span>
+                                <span class="text-secondary small ms-2" th:text="'(' + ${trackedOrder.tanggalTransaksi} + ')'"></span>
+                            </div>
+                            <span th:class="${trackedOrder.status == 'Dibatalkan' ? 'badge-jlt-error fs-6' : 'badge-jlt-success fs-6'}"
+                                  th:text="${trackedOrder.status}">Transaksi Masuk</span>
+                        </div>
+
+                        <div class="timeline-track" th:if="${trackedOrder.status != 'Dibatalkan'}">
+                            <div class="timeline-step" th:classappend="${trackedOrder.tahapTimeline > 1 ? 'completed' : (trackedOrder.tahapTimeline == 1 ? 'active' : '')}">
+                                <div class="timeline-node">1</div>
+                                <div><span class="timeline-mobile-badge">Status Aktif • Tahap 1/5</span><small class="fw-semibold">Transaksi Masuk</small></div>
+                            </div>
+                            <div class="timeline-step" th:classappend="${trackedOrder.tahapTimeline > 2 ? 'completed' : (trackedOrder.tahapTimeline == 2 ? 'active' : '')}">
+                                <div class="timeline-node">2</div>
+                                <div><span class="timeline-mobile-badge">Status Aktif • Tahap 2/5</span><small class="fw-semibold">Penugasan Kurir</small></div>
+                            </div>
+                            <div class="timeline-step" th:classappend="${trackedOrder.tahapTimeline > 3 ? 'completed' : (trackedOrder.tahapTimeline == 3 ? 'active' : '')}">
+                                <div class="timeline-node">3</div>
+                                <div><span class="timeline-mobile-badge">Status Aktif • Tahap 3/5</span><small class="fw-semibold">Penjemputan</small></div>
+                            </div>
+                            <div class="timeline-step" th:classappend="${trackedOrder.tahapTimeline > 4 ? 'completed' : (trackedOrder.tahapTimeline == 4 ? 'active' : '')}">
+                                <div class="timeline-node">4</div>
+                                <div><span class="timeline-mobile-badge">Status Aktif • Tahap 4/5</span><small class="fw-semibold">Diverifikasi Petugas</small></div>
+                            </div>
+                            <div class="timeline-step" th:classappend="${trackedOrder.tahapTimeline == 5 ? 'active' : ''}">
+                                <div class="timeline-node">5</div>
+                                <div><span class="timeline-mobile-badge">Status Aktif • Tahap 5/5</span><small class="fw-semibold">Selesai</small></div>
+                            </div>
+                        </div>
+
+                        <div class="jlt-card" style="background:#FFFAE5;border-color:#FFE675;">
+                            <div class="row g-3 align-items-center">
+                                <div class="col-md-7">
+                                    <h6 class="fw-bold mb-1" th:text="'Petugas Kurir: ' + ${trackedOrder.namaPetugasTransient}">Andi Pratama</h6>
+                                    <div class="small mb-1"><strong>Alamat Pickup:</strong> <span th:text="${trackedOrder.lokasiPenjemputan}"></span></div>
+                                    <div class="small mb-1"><strong>Rekening Pencairan:</strong> <span th:text="${trackedOrder.infoRekeningLengkap}"></span></div>
+                                    <div class="small mb-1"><strong>Volume &amp; Total Bayar:</strong> <span th:text="${trackedOrder.jumlahMinyak} + ' L • Rp ' + ${#numbers.formatDecimal(trackedOrder.totalHarga, 0, 'POINT', 0, 'COMMA')}"></span></div>
+                                    <div class="small"><strong>Detail Bukti Update:</strong> <span th:text="${trackedOrder.keteranganBukti != null ? trackedOrder.keteranganBukti : 'Menunggu update petugas'}"></span></div>
+                                </div>
+                                <div class="col-md-5 text-md-end" th:if="${trackedOrder.foto != null and !trackedOrder.foto.isEmpty()}">
+                                    <span class="small fw-bold d-block mb-1">Foto Bukti Lapangan:</span>
+                                    <img th:src="${trackedOrder.foto}" alt="Bukti" class="img-fluid rounded-3 border" style="max-height:130px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div th:if="${trackedRedeem != null}">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pt-2 border-top gap-2">
+                            <div>
+                                <span class="badge" style="background:#FFF3B8;color:#926008;border:1px solid #FFE675;">Redeem Poin</span>
+                                <span class="fw-bold fs-5 ms-1" th:text="'Resi: ' + ${trackedRedeem.kodeResi}">RDM-000001</span>
+                                <span class="text-secondary small ms-2" th:text="'(' + ${trackedRedeem.tglPenukaran} + ')'"></span>
+                            </div>
+                            <span th:class="${trackedRedeem.status == 'Dibatalkan' ? 'badge-jlt-error fs-6' : 'badge-jlt-success fs-6'}"
+                                  th:text="${trackedRedeem.status}">Request Masuk</span>
+                        </div>
+
+                        <div class="timeline-track" th:if="${trackedRedeem.status != 'Dibatalkan'}">
+                            <div class="timeline-step" th:classappend="${trackedRedeem.tahapTimeline > 1 ? 'completed' : (trackedRedeem.tahapTimeline == 1 ? 'active' : '')}">
+                                <div class="timeline-node">1</div>
+                                <div><span class="timeline-mobile-badge">Status Aktif • Tahap 1/5</span><small class="fw-semibold">Request Masuk</small></div>
+                            </div>
+                            <div class="timeline-step" th:classappend="${trackedRedeem.tahapTimeline > 2 ? 'completed' : (trackedRedeem.tahapTimeline == 2 ? 'active' : '')}">
+                                <div class="timeline-node">2</div>
+                                <div><span class="timeline-mobile-badge">Status Aktif • Tahap 2/5</span><small class="fw-semibold">Redeem Dikonfirmasi</small></div>
+                            </div>
+                            <div class="timeline-step" th:classappend="${trackedRedeem.tahapTimeline > 3 ? 'completed' : (trackedRedeem.tahapTimeline == 3 ? 'active' : '')}">
+                                <div class="timeline-node">3</div>
+                                <div><span class="timeline-mobile-badge">Status Aktif • Tahap 3/5</span><small class="fw-semibold">Petugas Ditugaskan</small></div>
+                            </div>
+                            <div class="timeline-step" th:classappend="${trackedRedeem.tahapTimeline > 4 ? 'completed' : (trackedRedeem.tahapTimeline == 4 ? 'active' : '')}">
+                                <div class="timeline-node">4</div>
+                                <div><span class="timeline-mobile-badge">Status Aktif • Tahap 4/5</span><small class="fw-semibold">Petugas Dalam Perjalanan</small></div>
+                            </div>
+                            <div class="timeline-step" th:classappend="${trackedRedeem.tahapTimeline == 5 ? 'active' : ''}">
+                                <div class="timeline-node">5</div>
+                                <div><span class="timeline-mobile-badge">Status Aktif • Tahap 5/5</span><small class="fw-semibold">Selesai</small></div>
+                            </div>
+                        </div>
+
+                        <div class="jlt-card" style="background:#FFFAE5;border-color:#FFE675;">
+                            <div class="row g-3 align-items-center">
+                                <div class="col-md-7">
+                                    <h6 class="fw-bold mb-1" th:text="'Produk Reward: ' + ${trackedRedeem.jumlahUnit} + 'x ' + ${trackedRedeem.namaProdukTransient}">1x Sabun</h6>
+                                    <div class="small mb-1"><strong>Kurir Pengantar:</strong> <span th:text="${trackedRedeem.namaPetugasTransient}"></span></div>
+                                    <div class="small mb-1"><strong>Alamat Pengantaran:</strong> <span th:text="${trackedRedeem.alamatPengantaran}"></span></div>
+                                    <div class="small mb-1"><strong>Poin Digunakan:</strong> <span th:text="${trackedRedeem.jumlahPoin} + ' Poin'"></span></div>
+                                    <div class="small"><strong>Detail Bukti Update:</strong> <span th:text="${trackedRedeem.keteranganBukti != null ? trackedRedeem.keteranganBukti : 'Menunggu konfirmasi pusat'}"></span></div>
+                                </div>
+                                <div class="col-md-5 text-md-end" th:if="${trackedRedeem.foto != null and !trackedRedeem.foto.isEmpty()}">
+                                    <span class="small fw-bold d-block mb-1">Foto Bukti Pengantaran:</span>
+                                    <img th:src="${trackedRedeem.foto}" alt="Bukti" class="img-fluid rounded-3 border" style="max-height:130px;">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAB 4: RIWAYAT TRANSAKSI TERPADU -->
+            <div class="tab-pane fade" th:classappend="${activeTab == 'transaction' ? 'show active' : ''}" id="tabTransaction">
+                <div class="jlt-card">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                        <div>
+                            <h5 class="fw-bold mb-1">Riwayat Transaksi (Jual Minyak &amp; Redeem Poin)</h5>
+                            <p class="small text-secondary mb-0">Klik pada kartu transaksi untuk membuka panel detail &amp; foto bukti update.</p>
+                        </div>
+                    </div>
+
+                    <div class="row g-2 mb-4">
+                        <div class="col-sm-4">
+                            <select id="filterJenisTrx" onchange="terapkanFilterRiwayat()" class="form-select jlt-select">
+                                <option value="SEMUA">Semua Jenis Transaksi</option>
+                                <option value="JUAL_MINYAK">Jual Minyak Jelantah</option>
+                                <option value="REDEEM">Redeem Poin Reward</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-4">
+                            <select id="filterStatusTrx" onchange="terapkanFilterRiwayat()" class="form-select jlt-select">
+                                <option value="SEMUA">Semua Status</option>
+                                <option value="Transaksi Masuk">Transaksi Masuk</option>
+                                <option value="Request Masuk">Request Masuk</option>
+                                <option value="Redeem Dikonfirmasi">Redeem Dikonfirmasi</option>
+                                <option value="Penugasan Kurir">Penugasan Kurir</option>
+                                <option value="Petugas Ditugaskan">Petugas Ditugaskan</option>
+                                <option value="Penjemputan">Penjemputan</option>
+                                <option value="Petugas Dalam Perjalanan">Petugas Dalam Perjalanan</option>
+                                <option value="Diverifikasi Petugas">Diverifikasi Petugas</option>
+                                <option value="Selesai">Selesai</option>
+                                <option value="Dibatalkan">Dibatalkan</option>
+                            </select>
+                        </div>
+                        <div class="col-sm-4">
+                            <input type="text" id="filterKeywordTrx" oninput="terapkanFilterRiwayat()" class="form-control" style="min-height:45px;border-radius:12px;" placeholder="Cari nomor resi / alamat / item...">
+                        </div>
+                    </div>
+
+                    <div id="pesanKosongRiwayat" class="text-center py-4 rounded-4 d-none" style="background:#FFFAE5;border:1px dashed #FFE675;">
+                        <h6 class="fw-bold mb-1">Tidak Ada Transaksi yang Cocok</h6>
+                        <p class="small text-secondary mb-0">Ubah filter di atas untuk menampilkan riwayat lainnya.</p>
+                    </div>
+
+                    <div class="d-flex flex-column gap-3" id="listRiwayatPenjualContainer">
+                        <div class="jlt-card p-3 item-riwayat-row" style="cursor:pointer;" th:each="item : ${riwayatUnified}"
+                             th:attr="data-jenis=${item.jenis},data-resi=${item.kodeResi},data-tanggal=${item.tanggal},data-penjual=${item.namaPenjual},data-petugas=${item.namaPetugas},data-item=${item.detailItem},data-total=${item.totalBayar},data-poin=${item.poin},data-alamat=${item.alamat},data-catatan=${item.catatan},data-status=${item.status},data-ketbukti=${item.keteranganBukti},data-foto=${item.foto}"
+                             onclick="bukaDetailTransaksiUnified(this)">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                                <div class="d-flex flex-wrap align-items-center gap-2">
+                                    <span class="badge" style="background:#FFF3B8;color:#926008;border:1px solid #FFE675;" th:text="${item.jenisLabel}">Jual Minyak</span>
+                                    <span class="fw-bold fs-5" th:text="${item.kodeResi}">JLT-000001</span>
+                                    <span th:class="${item.status == 'Dibatalkan' ? 'badge-jlt-error' : 'badge-jlt-success'}" th:text="${item.status}">Selesai</span>
+                                </div>
+                                <span class="badge-jlt-success fs-6" th:text="${item.poin >= 0 ? '+' + item.poin + ' Poin' : item.poin + ' Poin'}">+150 Poin</span>
+                            </div>
+                            <div class="row small text-secondary g-2">
+                                <div class="col-md-4"><strong>Item / Volume:</strong> <span class="text-dark fw-semibold" th:text="${item.detailItem}">15 Liter</span></div>
+                                <div class="col-md-4"><strong>Kurir:</strong> <span th:text="${item.namaPetugas}">Andi Pratama</span></div>
+                                <div class="col-md-4"><strong>Tanggal:</strong> <span th:text="${item.tanggal}">2026-11-13</span></div>
+                                <div class="col-12 text-truncate-1"><strong>Alamat:</strong> <span th:text="${item.alamat}">Jl. Melati</span></div>
+                                <div class="col-12 text-dark text-truncate-1"><strong>Bukti Update Terakhir:</strong> <span th:text="${item.keteranganBukti != null ? item.keteranganBukti : '-'}"></span></div>
+                            </div>
+                        </div>
+                    </div>
+                    <div id="listRiwayatPenjualContainer-pagination"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="sidePanelBackdrop" class="side-panel-backdrop" onclick="tutupDetailTransaksi()"></div>
+    <div id="sidePanelDrawer" class="side-panel-drawer">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold mb-0">Transaction Details</h5>
+            <button type="button" class="btn-close-jlt" onclick="tutupDetailTransaksi()">✕</button>
+        </div>
+        <div class="jlt-card mb-3" style="background:#FFFAE5;border-color:#FFE675;">
+            <p class="mb-2"><strong>Jenis Transaksi:</strong> <span id="spJenis">-</span></p>
+            <p class="mb-2"><strong>Nomor Resi:</strong> <span id="spResi">-</span></p>
+            <p class="mb-2"><strong>Tanggal:</strong> <span id="spTanggal">-</span></p>
+            <p class="mb-2"><strong>Nama Penjual:</strong> <span id="spPenjual">-</span></p>
+            <p class="mb-2"><strong>Nama Petugas:</strong> <span id="spPetugas">-</span></p>
+            <p class="mb-2"><strong>Alamat:</strong> <span id="spLokasi" class="text-break">-</span></p>
+            <p class="mb-2"><strong>Volume / Produk:</strong> <span id="spLiter">-</span></p>
+            <p class="mb-2"><strong>Total Bayar / Poin:</strong> <span id="spTotal" class="fw-bold">-</span></p>
+            <p class="mb-2"><strong>Catatan:</strong> <span id="spCatatan" class="text-break">-</span></p>
+            <p class="mb-2"><strong>Status Transaksi:</strong> <span id="spStatus" class="fw-bold">-</span></p>
+            <hr>
+            <p class="mb-2"><strong>Detail Bukti Update (Pusat/Petugas):</strong><br><span id="spKetBukti" class="small text-break">-</span></p>
+            <div>
+                <strong>Foto Bukti Update:</strong>
+                <div id="spNoFoto" class="small text-secondary fst-italic mt-1">Belum ada foto bukti diunggah.</div>
+                <img id="spFotoBukti" src="" alt="Foto Bukti" class="img-fluid rounded-3 border mt-2 d-none">
+            </div>
+        </div>
+        <button type="button" onclick="window.print()" class="btn-jlt-primary w-100">Cetak Bukti Transaksi Digital (PDF)</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Jelantara</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/global.css}">
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
+</head>
+<body th:attr="data-flash-success=${flashSuccess},data-flash-error=${flashError}">
+    <div class="row g-0 auth-split-wrapper">
+        <!-- Panel Kiri: Ilustrasi Maskot Kurir 3D di atas latar Soft Yellow -->
+        <div class="col-lg-6 auth-mascot-panel">
+            <div class="mascot-avatar-3d mb-4">
+                <i data-lucide="truck" style="width:76px;height:76px;color:#18181B;"></i>
+            </div>
+            <h2 class="fw-bold text-center">Ekosistem Digital Jelantara</h2>
+            <p class="text-secondary text-center mb-3" style="max-width: 400px;">
+                Sistem otomatis mendeteksi hak akses akun Anda (RBAC) dan mengarahkan ke halaman yang sesuai.
+            </p>
+            <div class="jlt-card p-3 small w-100" style="max-width: 400px;">
+                <div class="fw-bold mb-1">Akun Demo Sesuai Seed SQL:</div>
+                <div>• <strong>Pusat:</strong> pusat@mail.com / pusat123</div>
+                <div>• <strong>Penjual:</strong> budi@gmail.com / penjual123</div>
+                <div>• <strong>Petugas:</strong> petugas@mail.com / petugas123</div>
+            </div>
+        </div>
+
+        <!-- Panel Kanan: Form Login Murni Tanpa Pilihan Role Manual -->
+        <div class="col-lg-6 d-flex align-items-center justify-content-center p-4">
+            <div style="width: 100%; max-width: 400px;">
+                <h2 class="fw-bold mb-1">Welcome Back</h2>
+                <p class="text-secondary mb-4">Masukkan email dan password akun Jelantara Anda</p>
+                <form th:action="@{/auth/login}" method="post">
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold">Email</label>
+                        <input type="email" name="email" class="form-control py-2" placeholder="Masukkan email terdaftar" required>
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-semibold">Password</label>
+                        <input type="password" name="password" class="form-control py-2" placeholder="••••••••" required>
+                    </div>
+                    <button type="submit" class="btn-jlt-primary w-100 py-3">LOG IN</button>
+
+                    <div class="auth-divider"><span>or Log In with</span></div>
+                    <div class="d-flex gap-3 mb-4">
+                        <button type="button" class="btn-jlt-outline w-100">Google</button>
+                        <button type="button" class="btn-jlt-outline w-100">Facebook</button>
+                    </div>
+                    <p class="text-center small mb-0">Belum punya akun Penjual? <a th:href="@{/register}" class="fw-bold text-dark">Register</a></p>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

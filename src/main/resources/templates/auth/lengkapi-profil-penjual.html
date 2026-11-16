@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lengkapi Profil Penjual - Jelantara</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/global.css}">
+    <link rel="stylesheet" th:href="@{/css/auth.css}">
+</head>
+<body th:attr="data-flash-success=${flashSuccess},data-flash-error=${flashError}">
+    <div class="row g-0 auth-split-wrapper">
+        <div class="col-lg-5 auth-mascot-panel">
+            <div class="mascot-avatar-3d mb-4">
+                <i data-lucide="wallet" style="width:76px;height:76px;color:#18181B;"></i>
+            </div>
+            <span class="badge-jlt-success mb-2">Langkah Terakhir (2 dari 2)</span>
+            <h2 class="fw-bold text-center">Lengkapi Rekening &amp; Alamat</h2>
+            <p class="text-secondary text-center mb-0" style="max-width: 380px;">
+                Pilih metode pencairan dana (Transfer Bank atau E-Wallet) serta alamat utama penjemputan minyak jelantah Anda.
+            </p>
+        </div>
+
+        <div class="col-lg-7 d-flex align-items-center justify-content-center p-4 p-md-5">
+            <div style="width: 100%; max-width: 540px;">
+                <div class="jlt-card p-4 p-md-5">
+                    <div class="d-flex align-items-center gap-2 mb-3">
+                        <span class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width:36px;height:36px;background:#FFCA00;">
+                            <i data-lucide="user-check" style="width:18px;height:18px;"></i>
+                        </span>
+                        <div>
+                            <h4 class="fw-bold mb-0">Lengkapi Data Penjual</h4>
+                            <small class="text-secondary" th:text="${penjual != null ? penjual.namaPenjual + ' (' + penjual.email + ')' : ''}"></small>
+                        </div>
+                    </div>
+
+                    <form th:action="@{/auth/lengkapi-profil-penjual}" method="post">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Kategori Sumber Jelantah <span class="text-danger">*</span></label>
+                            <select name="kategoriPenjual" class="form-select jlt-select" required>
+                                <option value="Rumah Tangga" th:selected="${penjual != null and penjual.kategoriPenjual == 'Rumah Tangga'}">Rumah Tangga</option>
+                                <option value="UMKM / Kuliner" th:selected="${penjual != null and penjual.kategoriPenjual == 'UMKM / Kuliner'}">UMKM / Warung Kuliner</option>
+                                <option value="Restoran / Hotel" th:selected="${penjual != null and penjual.kategoriPenjual == 'Restoran / Hotel'}">Restoran / Hotel</option>
+                            </select>
+                        </div>
+
+                        <div class="row g-3 mb-3">
+                            <div class="col-sm-6">
+                                <label class="form-label fw-semibold small">Metode Pencairan <span class="text-danger">*</span></label>
+                                <select name="metodePembayaran" id="metodePembayaranOnboarding"
+                                        onchange="updatePilihanPenyedia('metodePembayaranOnboarding','namaPenyediaOnboarding','labelNomorOnboarding','inputNomorOnboarding')"
+                                        class="form-select jlt-select" required>
+                                    <option value="Bank" th:selected="${penjual == null or penjual.metodePembayaran == 'Bank'}">Transfer Bank</option>
+                                    <option value="E-Wallet" th:selected="${penjual != null and penjual.metodePembayaran == 'E-Wallet'}">E-Wallet</option>
+                                </select>
+                            </div>
+                            <div class="col-sm-6">
+                                <label class="form-label fw-semibold small">Pilih Bank / E-Wallet <span class="text-danger">*</span></label>
+                                <select name="namaPenyedia" id="namaPenyediaOnboarding"
+                                        th:attr="data-selected=${penjual != null ? penjual.namaPenyedia : 'BCA'}"
+                                        class="form-select jlt-select" required>
+                                    <option value="BCA">Bank BCA</option>
+                                    <option value="Mandiri">Bank Mandiri</option>
+                                    <option value="BRI">Bank BRI</option>
+                                    <option value="BNI">Bank BNI</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small" id="labelNomorOnboarding">Nomor Rekening Bank <span class="text-danger">*</span></label>
+                            <div class="jlt-input-group">
+                                <i data-lucide="credit-card" class="jlt-icon" style="width: 18px; height: 18px;"></i>
+                                <input type="text" name="noRekening" id="inputNomorOnboarding" class="jlt-input"
+                                       th:value="${penjual != null ? penjual.noRekening : ''}"
+                                       placeholder="Contoh: 7210998212" required>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <label class="form-label fw-semibold small">Alamat Lengkap Penjemputan Saat Ini <span class="text-danger">*</span></label>
+                            <div class="jlt-input-group">
+                                <i data-lucide="map-pin" class="jlt-icon" style="width: 18px; height: 18px; top: 24px;"></i>
+                                <textarea name="alamat" rows="3" class="jlt-input"
+                                          placeholder="Masukkan alamat lengkap beserta patokan..." required
+                                          th:text="${penjual != null and penjual.alamat != null ? penjual.alamat : ''}"></textarea>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-jlt-primary w-100 py-3">
+                            <i data-lucide="check-circle" style="width: 18px; height: 18px;"></i>
+                            <span>Simpan Profil &amp; Masuk ke Dashboard</span>
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script th:src="@{/js/main.js}"></script>
+</body>
+</html>

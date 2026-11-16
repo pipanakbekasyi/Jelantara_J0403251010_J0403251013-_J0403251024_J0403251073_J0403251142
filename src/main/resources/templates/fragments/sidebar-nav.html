@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+    <!-- Sidebar Responsif untuk Role PUSAT -->
+    <div th:fragment="pusat-sidebar(activeMenu, pusat)">
+        <div class="d-lg-none bg-white border-bottom px-3 py-2 d-flex justify-content-between align-items-center sticky-top">
+            <a class="fw-bold fs-5 text-dark text-decoration-none d-flex align-items-center gap-2" th:href="@{/pusat}">
+                <span class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width:34px;height:34px;background:#FFCA00;">
+                    <i data-lucide="droplet" style="width:18px;height:18px;"></i>
+                </span>
+                JELANTARA PUSAT
+            </a>
+            <button class="btn-jlt-secondary py-1 px-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#pusatOffcanvas">
+                <i data-lucide="menu" style="width:18px;height:18px;"></i> Menu
+            </button>
+        </div>
+
+        <aside class="app-sidebar d-none d-lg-flex">
+            <a class="fw-bold fs-4 text-dark text-decoration-none d-flex align-items-center gap-2 mb-4 px-2" th:href="@{/pusat}">
+                <span class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width:38px;height:38px;background:#FFCA00;">
+                    <i data-lucide="droplet" style="width:20px;height:20px;"></i>
+                </span>
+                JELANTARA
+            </a>
+            <div class="p-3 rounded-4 mb-4" style="background:#FFFAE5;border:1px solid #FFE675;">
+                <span class="badge-jlt-success mb-1 d-inline-block">ROLE: PUSAT</span>
+                <h6 class="fw-bold mb-0 text-truncate-1" th:text="${pusat.namaGudang}">Gudang Bandung</h6>
+                <small class="text-secondary text-truncate-1 d-block" th:text="${pusat.email}">pusat@mail.com</small>
+            </div>
+            <nav class="flex-grow-1">
+                <a class="sidebar-nav-link" th:classappend="${activeMenu == 'overview' ? 'active' : ''}" th:href="@{/pusat(menu='overview')}">
+                    <i data-lucide="layout-dashboard" style="width:18px;height:18px;"></i> Overview Hari Ini
+                </a>
+                <a class="sidebar-nav-link" th:classappend="${activeMenu == 'transaksi' ? 'active' : ''}" th:href="@{/pusat(menu='transaksi')}">
+                    <i data-lucide="clipboard-list" style="width:18px;height:18px;"></i> Transaksi &amp; Penugasan
+                </a>
+                <a class="sidebar-nav-link" th:classappend="${activeMenu == 'katalog' ? 'active' : ''}" th:href="@{/pusat(menu='katalog')}">
+                    <i data-lucide="package" style="width:18px;height:18px;"></i> Kelola Produk Olahan
+                </a>
+                <a class="sidebar-nav-link" th:classappend="${activeMenu == 'redeem' ? 'active' : ''}" th:href="@{/pusat(menu='redeem')}">
+                    <i data-lucide="award" style="width:18px;height:18px;"></i> Verifikasi Tukar Poin
+                </a>
+                <a class="sidebar-nav-link" th:classappend="${activeMenu == 'petugas' ? 'active' : ''}" th:href="@{/pusat(menu='petugas')}">
+                    <i data-lucide="users" style="width:18px;height:18px;"></i> Kelola Petugas
+                </a>
+                <a class="sidebar-nav-link" th:classappend="${activeMenu == 'notifikasi' ? 'active' : ''}" th:href="@{/pusat(menu='notifikasi')}">
+                    <i data-lucide="bell" style="width:18px;height:18px;"></i>
+                    <span>Notifikasi</span>
+                    <span th:if="${unreadNotif != null and unreadNotif > 0}" class="notif-badge-dot" th:text="${unreadNotif}">1</span>
+                </a>
+                <a class="sidebar-nav-link" th:classappend="${activeMenu == 'profile' ? 'active' : ''}" th:href="@{/pusat(menu='profile')}">
+                    <i data-lucide="user-cog" style="width:18px;height:18px;"></i> Profil Gudang Pusat
+                </a>
+            </nav>
+            <a th:href="@{/logout}" class="btn-jlt-outline w-100 mt-auto">
+                <i data-lucide="log-out" style="width:16px;height:16px;"></i> Logout
+            </a>
+        </aside>
+
+        <div class="offcanvas offcanvas-start" tabindex="-1" id="pusatOffcanvas">
+            <div class="offcanvas-header border-bottom">
+                <h5 class="offcanvas-title fw-bold">Menu Gudang Pusat</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+            </div>
+            <div class="offcanvas-body d-flex flex-column">
+                <div class="p-3 rounded-4 mb-3" style="background:#FFFAE5;border:1px solid #FFE675;">
+                    <span class="badge-jlt-success mb-1 d-inline-block">ROLE: PUSAT</span>
+                    <h6 class="fw-bold mb-0" th:text="${pusat.namaGudang}">Gudang Bandung</h6>
+                </div>
+                <a class="sidebar-nav-link" th:classappend="${activeMenu == 'overview' ? 'active' : ''}" th:href="@{/pusat(menu='overview')}">Overview Hari Ini</a>
+                <a class="sidebar-nav-link" th:classappend="${activeMenu == 'transaksi' ? 'active' : ''}" th:href="@{/pusat(menu='transaksi')}">Transaksi &amp; Penugasan</a>
+                <a class="sidebar-nav-link" th:classappend="${activeMenu == 'katalog' ? 'active' : ''}" th:href="@{/pusat(menu='katalog')}">Kelola Produk Olahan</a>
+                <a class="sidebar-nav-link" th:classappend="${activeMenu == 'redeem' ? 'active' : ''}" th:href="@{/pusat(menu='redeem')}">Verifikasi Tukar Poin</a>
+                <a class="sidebar-nav-link" th:classappend="${activeMenu == 'petugas' ? 'active' : ''}" th:href="@{/pusat(menu='petugas')}">Kelola Petugas</a>
+                <a class="sidebar-nav-link" th:classappend="${activeMenu == 'notifikasi' ? 'active' : ''}" th:href="@{/pusat(menu='notifikasi')}">
+                    <span>Notifikasi</span>
+                    <span th:if="${unreadNotif != null and unreadNotif > 0}" class="notif-badge-dot" th:text="${unreadNotif}">1</span>
+                </a>
+                <a class="sidebar-nav-link" th:classappend="${activeMenu == 'profile' ? 'active' : ''}" th:href="@{/pusat(menu='profile')}">Profil Gudang Pusat</a>
+                <a th:href="@{/logout}" class="btn-jlt-outline w-100 mt-auto">Logout</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sidebar Responsif untuk Role PETUGAS -->
+    <div th:fragment="petugas-sidebar(activeMenu, petugas)">
+        <div class="d-lg-none bg-white border-bottom px-3 py-2 d-flex justify-content-between align-items-center sticky-top">
+            <a class="fw-bold fs-5 text-dark text-decoration-none d-flex align-items-center gap-2" th:href="@{/petugas/transaksi}">
+                <span class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width:34px;height:34px;background:#FFCA00;">
+                    <i data-lucide="truck" style="width:18px;height:18px;"></i>
+                </span>
+                KURIR JELANTARA
+            </a>
+            <button class="btn-jlt-secondary py-1 px-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#petugasOffcanvas">
+                <i data-lucide="menu" style="width:18px;height:18px;"></i> Menu
+            </button>
+        </div>
+
+        <aside class="app-sidebar d-none d-lg-flex">
+            <a class="fw-bold fs-4 text-dark text-decoration-none d-flex align-items-center gap-2 mb-4 px-2" th:href="@{/petugas/transaksi}">
+                <span class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width:38px;height:38px;background:#FFCA00;">
+                    <i data-lucide="truck" style="width:20px;height:20px;"></i>
+                </span>
+                JELANTARA
+            </a>
+            <div class="p-3 rounded-4 mb-4" style="background:#FFFAE5;border:1px solid #FFE675;">
+                <span class="badge-jlt-success mb-1 d-inline-block">ROLE: PETUGAS</span>
+                <h6 class="fw-bold mb-0 text-truncate-1" th:text="${petugas.namaPetugas}">Andi Pratama</h6>
+                <small class="text-secondary d-block" th:text="'Beban: ' + ${petugas.bebanAngkut} + ' / ' + ${petugas.kapasitasMaksimal} + ' L'"></small>
+            </div>
+            <nav class="flex-grow-1">
+                <a class="sidebar-nav-link" th:classappend="${activeMenu == 'transaksi' ? 'active' : ''}" th:href="@{/petugas/transaksi}">
+                    <i data-lucide="droplet" style="width:18px;height:18px;"></i> Tugas Jual Minyak
+                </a>
+                <a class="sidebar-nav-link" th:classappend="${activeMenu == 'redeem' ? 'active' : ''}" th:href="@{/petugas/redeem}">
+                    <i data-lucide="gift" style="width:18px;height:18px;"></i> Tugas Antar Redeem
+                </a>
+                <a class="sidebar-nav-link" th:classappend="${activeMenu == 'notifikasi' ? 'active' : ''}" th:href="@{/petugas/notifikasi}">
+                    <i data-lucide="bell" style="width:18px;height:18px;"></i>
+                    <span>Notifikasi</span>
+                    <span th:if="${unreadNotif != null and unreadNotif > 0}" class="notif-badge-dot" th:text="${unreadNotif}">1</span>
+                </a>
+                <a class="sidebar-nav-link" th:classappend="${activeMenu == 'profile' ? 'active' : ''}" th:href="@{/petugas/profile}">
+                    <i data-lucide="user" style="width:18px;height:18px;"></i> Profil Saya
+                </a>
+            </nav>
+            <a th:href="@{/logout}" class="btn-jlt-outline w-100 mt-auto">
+                <i data-lucide="log-out" style="width:16px;height:16px;"></i> Logout
+            </a>
+        </aside>
+
+        <div class="offcanvas offcanvas-start" tabindex="-1" id="petugasOffcanvas">
+            <div class="offcanvas-header border-bottom">
+                <h5 class="offcanvas-title fw-bold">Menu Operasional Kurir</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="offcanvas"></button>
+            </div>
+            <div class="offcanvas-body d-flex flex-column">
+                <div class="p-3 rounded-4 mb-3" style="background:#FFFAE5;border:1px solid #FFE675;">
+                    <span class="badge-jlt-success mb-1 d-inline-block">ROLE: PETUGAS</span>
+                    <h6 class="fw-bold mb-0" th:text="${petugas.namaPetugas}">Andi Pratama</h6>
+                </div>
+                <a class="sidebar-nav-link" th:classappend="${activeMenu == 'transaksi' ? 'active' : ''}" th:href="@{/petugas/transaksi}">Tugas Jual Minyak</a>
+                <a class="sidebar-nav-link" th:classappend="${activeMenu == 'redeem' ? 'active' : ''}" th:href="@{/petugas/redeem}">Tugas Antar Redeem</a>
+                <a class="sidebar-nav-link" th:classappend="${activeMenu == 'notifikasi' ? 'active' : ''}" th:href="@{/petugas/notifikasi}">
+                    <span>Notifikasi</span>
+                    <span th:if="${unreadNotif != null and unreadNotif > 0}" class="notif-badge-dot" th:text="${unreadNotif}">1</span>
+                </a>
+                <a class="sidebar-nav-link" th:classappend="${activeMenu == 'profile' ? 'active' : ''}" th:href="@{/petugas/profile}">Profil Saya</a>
+                <a th:href="@{/logout}" class="btn-jlt-outline w-100 mt-auto">Logout</a>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
