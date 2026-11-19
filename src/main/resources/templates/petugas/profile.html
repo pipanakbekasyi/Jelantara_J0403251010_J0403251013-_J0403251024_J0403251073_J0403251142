@@ -9,6 +9,26 @@
     <link rel="stylesheet" th:href="@{/css/petugas.css}">
 </head>
 <body th:attr="data-flash-success=${flashSuccess},data-flash-error=${flashError}">
+    <!-- Skeleton Shimmer Loading Overlay (Auto-dismiss & Non-blocking) -->
+    <div id="jltSkeletonOverlay" class="jlt-skeleton-overlay">
+        <div class="container" style="max-width: 720px;">
+            <div class="jlt-card p-4">
+                <div class="skeleton-box skeleton-line title mb-3"></div>
+                <div class="skeleton-box skeleton-line short mb-4"></div>
+                <div class="row g-3">
+                    <div class="col-6"><div class="skeleton-box" style="height: 110px;"></div></div>
+                    <div class="col-6"><div class="skeleton-box" style="height: 110px;"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        (function(){
+            var el = document.getElementById('jltSkeletonOverlay');
+            if(el){ setTimeout(function(){ el.style.opacity='0'; setTimeout(function(){ if(el && el.parentNode) el.parentNode.removeChild(el); }, 220); }, 250); }
+        })();
+    </script>
+
 
     <div class="app-layout flex-column flex-lg-row">
         <div th:replace="~{fragments/sidebar-nav :: petugas-sidebar('profile', ${petugas})}"></div>
@@ -24,10 +44,7 @@
             <div class="row g-4">
                 <div class="col-lg-4">
                     <div class="jlt-card text-center h-100">
-                        <div class="rounded-circle d-inline-flex align-items-center justify-content-center fw-bold fs-2 mb-3 shadow-sm"
-                             style="width:88px;height:88px;background:#FFCA00;color:#18181B;">
-                            <i data-lucide="truck" style="width:40px;height:40px;"></i>
-                        </div>
+                        <img src="/images/avatar-default.jpg" alt="Foto Profil Petugas" class="rounded-circle mb-3 shadow-sm" style="width:92px;height:92px;object-fit:cover;border:3px solid #FFCA00;">
                         <h4 class="fw-bold mb-1" th:text="${petugas.namaPetugas}">Andi Pratama</h4>
                         <p class="small text-secondary mb-2" th:text="${petugas.email}">petugas@mail.com</p>
                         <span class="badge-jlt-success mb-3 d-inline-block" th:text="'Role: ' + ${petugas.role} + ' (' + ${petugas.status} + ')'">PETUGAS</span>
@@ -51,8 +68,21 @@
 
                 <div class="col-lg-8">
                     <div class="jlt-card h-100">
-                        <h5 class="fw-bold mb-3 pb-2 border-bottom">Edit Profil Petugas Kurir</h5>
-                        <form th:action="@{/petugas/profile/update}" method="post" class="row g-3">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom gap-2">
+                            <h5 class="fw-bold mb-0">Detail &amp; Pengaturan Profil Petugas</h5>
+                            <button type="button" id="btnToggleEditPetugas" onclick="toggleProfilEdit('viewProfilPetugas','formProfilPetugas','btnToggleEditPetugas')" class="btn-jlt-primary btn-sm">
+                                <i data-lucide="edit-3" style="width:15px;height:15px;"></i> Edit Profil
+                            </button>
+                        </div>
+
+                        <div id="viewProfilPetugas" class="row g-3">
+                            <div class="col-md-6"><div class="p-3 rounded-4 border bg-light"><small class="text-secondary d-block">Nama Lengkap</small><strong th:text="${petugas.namaPetugas}">-</strong></div></div>
+                            <div class="col-md-6"><div class="p-3 rounded-4 border bg-light"><small class="text-secondary d-block">Email Login</small><strong th:text="${petugas.email}">-</strong></div></div>
+                            <div class="col-md-6"><div class="p-3 rounded-4 border bg-light"><small class="text-secondary d-block">Nomor Telepon</small><strong th:text="${petugas.noTelp}">-</strong></div></div>
+                            <div class="col-md-6"><div class="p-3 rounded-4 border bg-light"><small class="text-secondary d-block">Alamat Domisili</small><strong th:text="${petugas.alamat != null ? petugas.alamat : '-'}">-</strong></div></div>
+                        </div>
+
+                        <form id="formProfilPetugas" th:action="@{/petugas/profile/update}" method="post" class="row g-3 d-none">
                             <div class="col-md-6">
                                 <label class="form-label fw-semibold small">Nama Lengkap Petugas <span class="text-danger">*</span></label>
                                 <input type="text" name="namaPetugas" class="form-control" th:value="${petugas.namaPetugas}" required>

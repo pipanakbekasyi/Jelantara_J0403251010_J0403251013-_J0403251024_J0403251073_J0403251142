@@ -500,3 +500,154 @@ body {
     opacity: 0.5;
     pointer-events: none;
 }
+
+/* Sticky Mobile Navbar & Topbar untuk Semua POV (Penjual, Pusat, Petugas) */
+.jlt-sticky-navbar, .mobile-sticky-header {
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1035 !important;
+    background-color: rgba(255, 255, 255, 0.97) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    box-shadow: 0 2px 12px rgba(24, 24, 27, 0.06);
+}
+
+/* Skeleton Shimmer Loading Animation (Design System Yellow-Gold) */
+@keyframes jltShimmer {
+    0% { background-position: -600px 0; }
+    100% { background-position: 600px 0; }
+}
+.skeleton-box {
+    background: #FFF9E0;
+    background-image: linear-gradient(90deg, #FFF8DB 0px, #FFEC99 45%, #FFF8DB 90%);
+    background-size: 600px 100%;
+    animation: jltShimmer 1.35s infinite linear;
+    border-radius: 12px;
+}
+.skeleton-line { height: 14px; margin-bottom: 10px; border-radius: 8px; }
+.skeleton-line.title { height: 22px; width: 60%; }
+.skeleton-line.short { width: 38%; }
+
+/* Gambar Logo & Ilustrasi Aset */
+.jlt-brand-logo-img {
+    width: 40px; height: 40px; border-radius: 50%; object-fit: cover;
+    border: 2px solid #FFCA00; background-color: #FFFFFF;
+}
+.hero-illustration-img {
+    width: 100%; max-height: 320px; object-fit: cover; border-radius: 16px;
+    border: 3px solid #FFFFFF; box-shadow: 0 8px 20px rgba(146, 96, 8, 0.14);
+}
+.auth-mascot-img {
+    width: 230px; height: 230px; object-fit: cover; border-radius: 28px;
+    border: 5px solid #FFFFFF; box-shadow: 0 16px 36px rgba(247, 179, 46, 0.28);
+}
+@media (max-width: 991.98px) {
+    .auth-mascot-img { width: 150px; height: 150px; border-radius: 22px; }
+}
+
+
+/* Fix Skeleton Shimmer Overlay agar tidak pernah nyangkut */
+.jlt-skeleton-overlay {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    background-color: #FFFFFF;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    transition: opacity 0.22s ease;
+}
+.jlt-skeleton-overlay.jlt-hidden {
+    display: none !important;
+    pointer-events: none !important;
+}
+
+/* Sticky Navbar seperti Figma (Tetap menempel saat di-scroll di Desktop & Mobile) */
+html, body {
+    overflow-x: clip !important;
+}
+.jlt-sticky-navbar, .mobile-sticky-header, .navbar.sticky-top {
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 0 !important;
+    z-index: 1040 !important;
+    width: 100%;
+    background-color: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1.5px solid #E4E4E7;
+    box-shadow: 0 4px 14px rgba(24, 24, 27, 0.06);
+}
+
+
+/* Sempurna Sticky Mobile Navbar & Topbar (Selalu Menempel Saat Di-scroll) */
+@media (max-width: 991.98px) {
+    .jlt-sticky-navbar, .mobile-sticky-header, .navbar.sticky-top, div[class*="sticky-top"] {
+        position: sticky !important;
+        position: -webkit-sticky !important;
+        top: 0 !important;
+        z-index: 1045 !important;
+        width: 100% !important;
+        background-color: #FFFFFF !important;
+        box-shadow: 0 4px 16px rgba(24, 24, 27, 0.08) !important;
+    }
+}
+
+
+/* Sticky Navbar & Topbar (Selalu menempel di atas dan tidak hilang saat di-scroll) */
+.jlt-sticky-navbar, .mobile-sticky-header, .navbar.sticky-top, div[class*="sticky-top"] {
+    position: sticky !important;
+    position: -webkit-sticky !important;
+    top: 0 !important;
+    z-index: 1050 !important;
+    width: 100% !important;
+    background-color: #FFFFFF !important;
+    border-bottom: 1.5px solid #E4E4E7 !important;
+    box-shadow: 0 4px 16px rgba(24, 24, 27, 0.08) !important;
+}
+
+
+/* =====================================================================
+   BULLETPROOF STICKY NAVBAR DI SEMUA POV (DESKTOP & MOBILE)
+   ===================================================================== */
+.jlt-sticky-navbar {
+    position: sticky !important;
+    position: -webkit-sticky !important;
+    top: 0 !important;
+    z-index: 1055 !important;
+    width: 100% !important;
+    background-color: rgba(255, 255, 255, 0.98) !important;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border-bottom: 1.5px solid #E4E4E7 !important;
+    box-shadow: 0 4px 16px rgba(24, 24, 27, 0.08) !important;
+}
+@media (max-width: 991.98px) {
+    .mobile-sticky-header {
+        position: fixed !important;
+        top: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        z-index: 1055 !important;
+        width: 100% !important;
+        background-color: rgba(255, 255, 255, 0.98) !important;
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        border-bottom: 1.5px solid #E4E4E7 !important;
+        box-shadow: 0 4px 16px rgba(24, 24, 27, 0.08) !important;
+    }
+    .app-layout .app-main-content {
+        padding-top: 74px !important;
+    }
+}
+/* Timeline Log Riwayat Update (Append-Only) di Side Panel */
+.audit-log-item {
+    background: #FFFFFF;
+    border: 1px solid #FFE675;
+    border-left: 4px solid #FFCA00;
+    border-radius: 10px;
+    padding: 10px 12px;
+    margin-bottom: 10px;
+}

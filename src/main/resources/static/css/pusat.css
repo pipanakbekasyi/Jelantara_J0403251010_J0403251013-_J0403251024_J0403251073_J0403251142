@@ -27,3 +27,14 @@
     padding: 20px;
     box-shadow: var(--shadow-sm);
 }
+
+
+/* Hover effect pada card overview pusat */
+.overview-metric-card, .jlt-card {
+    transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease !important;
+}
+.overview-metric-card:hover, .jlt-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(24, 24, 27, 0.10) !important;
+    border-color: #FFCA00 !important;
+}

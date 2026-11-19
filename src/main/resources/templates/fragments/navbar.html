@@ -1,56 +1,52 @@
 <!DOCTYPE html>
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
-    <!-- Top Navbar Responsif untuk Publik dan Role PENJUAL (Dengan Link Notifikasi & Profil Saya) -->
-    <div th:fragment="main-navbar(activeMenu)">
-        <nav class="navbar navbar-expand-lg bg-white border-bottom py-3 sticky-top">
-            <div class="container">
-                <a class="navbar-brand fw-bold fs-4 d-flex align-items-center gap-2" th:href="@{/}" style="color: #18181B;">
-                    <span class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width:38px;height:38px;background:#FFCA00;">
-                        <i data-lucide="droplet" style="width:20px;height:20px;"></i>
-                    </span>
-                    JELANTARA
-                </a>
-                <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#jltNavbar">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="collapse navbar-collapse justify-content-center" id="jltNavbar">
-                    <ul class="navbar-nav gap-lg-3 gap-2 my-3 my-lg-0 align-items-lg-center">
-                        <li class="nav-item"><a class="nav-link fw-semibold text-dark" th:href="@{/}">Home</a></li>
-                        <li class="nav-item"><a class="nav-link fw-semibold text-dark" th:href="@{/#cara-kerja}">Services</a></li>
-                        <li class="nav-item"><a class="nav-link fw-semibold text-dark" th:href="@{/#katalog}">Product</a></li>
-                        <li class="nav-item" th:if="${userRole == 'PENJUAL'}">
-                            <a class="nav-link fw-semibold px-3 py-1 rounded-pill"
-                               th:style="${activeMenu == 'penjual' ? 'background:#FFCA00;color:#18181B;' : 'color:#18181B;'}"
-                               th:href="@{/check-it-now}">Check it Now</a>
-                        </li>
-                        <li class="nav-item" th:if="${userRole == 'PENJUAL'}">
-                            <a class="nav-link fw-semibold px-3 py-1 rounded-pill d-inline-flex align-items-center gap-1"
-                               th:style="${activeMenu == 'notifikasi' ? 'background:#FFCA00;color:#18181B;' : 'color:#18181B;'}"
-                               th:href="@{/penjual/notifikasi}">
-                                <i data-lucide="bell" style="width:18px;height:18px;"></i>
-                                <span>Notifikasi</span>
-                                <span th:if="${unreadNotif != null and unreadNotif > 0}" class="notif-badge-dot" th:text="${unreadNotif}">1</span>
-                            </a>
-                        </li>
-                        <li class="nav-item" th:if="${userRole == 'PENJUAL'}">
-                            <a class="nav-link fw-semibold px-3 py-1 rounded-pill d-inline-flex align-items-center gap-1"
-                               th:style="${activeMenu == 'profile' ? 'background:#FFCA00;color:#18181B;' : 'color:#18181B;'}"
-                               th:href="@{/penjual/profile}">
-                                <i data-lucide="user" style="width:18px;height:18px;"></i>
-                                <span>Profil Saya</span>
-                            </a>
-                        </li>
-                    </ul>
-                </div>
-                <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0">
-                    <a th:if="${userRole == null}" th:href="@{/login}" class="btn-jlt-secondary">Sign In</a>
-                    <a th:if="${userRole != null}" th:href="@{/logout}" class="btn-jlt-outline">
-                        <i data-lucide="log-out" style="width:16px;height:16px;"></i> Logout
-                    </a>
-                </div>
+    <!-- Top Navbar Sticky untuk Publik dan Role PENJUAL -->
+    <nav th:fragment="main-navbar(activeMenu)" class="navbar navbar-expand-lg bg-white border-bottom py-3 sticky-top jlt-sticky-navbar">
+        <div class="container">
+            <a class="navbar-brand fw-bold fs-4 d-flex align-items-center gap-2" th:href="@{/}" style="color: #18181B;">
+                <img src="/images/logo-jelantara.png" alt="Logo Jelantara" class="jlt-brand-logo-img">
+                JELANTARA
+            </a>
+            <button class="navbar-toggler border-0 shadow-none" type="button" data-bs-toggle="collapse" data-bs-target="#jltNavbar">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-center" id="jltNavbar">
+                <ul class="navbar-nav gap-lg-3 gap-2 my-3 my-lg-0 align-items-lg-center">
+                    <li class="nav-item"><a class="nav-link fw-semibold text-dark" th:href="@{/}">Home</a></li>
+                    <li class="nav-item"><a class="nav-link fw-semibold text-dark" th:href="@{/#cara-kerja}">Services</a></li>
+                    <li class="nav-item"><a class="nav-link fw-semibold text-dark" th:href="@{/#katalog}">Product</a></li>
+                    <li class="nav-item" th:if="${userRole == 'PENJUAL'}">
+                        <a class="nav-link fw-semibold px-3 py-1 rounded-pill"
+                           th:style="${activeMenu == 'penjual' ? 'background:#FFCA00;color:#18181B;' : 'color:#18181B;'}"
+                           th:href="@{/check-it-now}">Check it Now</a>
+                    </li>
+                    <li class="nav-item" th:if="${userRole == 'PENJUAL'}">
+                        <a class="nav-link fw-semibold px-3 py-1 rounded-pill d-inline-flex align-items-center gap-1"
+                           th:style="${activeMenu == 'notifikasi' ? 'background:#FFCA00;color:#18181B;' : 'color:#18181B;'}"
+                           th:href="@{/penjual/notifikasi}">
+                            <i data-lucide="bell" style="width:18px;height:18px;"></i>
+                            <span>Notifikasi</span>
+                            <span th:if="${unreadNotif != null and unreadNotif > 0}" class="notif-badge-dot" th:text="${unreadNotif}">1</span>
+                        </a>
+                    </li>
+                    <li class="nav-item" th:if="${userRole == 'PENJUAL'}">
+                        <a class="nav-link fw-semibold px-3 py-1 rounded-pill d-inline-flex align-items-center gap-1"
+                           th:style="${activeMenu == 'profile' ? 'background:#FFCA00;color:#18181B;' : 'color:#18181B;'}"
+                           th:href="@{/penjual/profile}">
+                            <i data-lucide="user" style="width:18px;height:18px;"></i>
+                            <span>Profil Saya</span>
+                        </a>
+                    </li>
+                </ul>
             </div>
-        </nav>
-    </div>
+            <div class="d-flex align-items-center gap-2 mt-2 mt-lg-0">
+                <a th:if="${userRole == null}" th:href="@{/login}" class="btn-jlt-secondary">Sign In</a>
+                <a th:if="${userRole != null}" th:href="@{/logout}" class="btn-jlt-outline">
+                    <i data-lucide="log-out" style="width:16px;height:16px;"></i> Logout
+                </a>
+            </div>
+        </div>
+    </nav>
 </body>
 </html>

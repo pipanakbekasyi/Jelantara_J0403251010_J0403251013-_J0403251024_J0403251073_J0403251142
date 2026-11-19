@@ -9,11 +9,29 @@
     <link rel="stylesheet" th:href="@{/css/auth.css}">
 </head>
 <body th:attr="data-flash-success=${flashSuccess},data-flash-error=${flashError}">
+    <!-- Skeleton Shimmer Loading Overlay (Auto-dismiss & Non-blocking) -->
+    <div id="jltSkeletonOverlay" class="jlt-skeleton-overlay">
+        <div class="container" style="max-width: 720px;">
+            <div class="jlt-card p-4">
+                <div class="skeleton-box skeleton-line title mb-3"></div>
+                <div class="skeleton-box skeleton-line short mb-4"></div>
+                <div class="row g-3">
+                    <div class="col-6"><div class="skeleton-box" style="height: 110px;"></div></div>
+                    <div class="col-6"><div class="skeleton-box" style="height: 110px;"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        (function(){
+            var el = document.getElementById('jltSkeletonOverlay');
+            if(el){ setTimeout(function(){ el.style.opacity='0'; setTimeout(function(){ if(el && el.parentNode) el.parentNode.removeChild(el); }, 220); }, 250); }
+        })();
+    </script>
+
     <div class="row g-0 auth-split-wrapper">
         <div class="col-lg-5 auth-mascot-panel">
-            <div class="mascot-avatar-3d mb-4">
-                <i data-lucide="wallet" style="width:76px;height:76px;color:#18181B;"></i>
-            </div>
+            <img src="/images/mascot-onboarding.jpg" alt="Lengkapi Profil Jelantara" class="auth-mascot-img mb-4">
             <span class="badge-jlt-success mb-2">Langkah Terakhir (2 dari 2)</span>
             <h2 class="fw-bold text-center">Lengkapi Rekening &amp; Alamat</h2>
             <p class="text-secondary text-center mb-0" style="max-width: 380px;">
@@ -35,6 +53,16 @@
                     </div>
 
                     <form th:action="@{/auth/lengkapi-profil-penjual}" method="post">
+                                                <div class="mb-3">
+                            <label class="form-label fw-semibold small">Nomor HP / WhatsApp <span class="text-danger">*</span></label>
+                            <div class="jlt-input-group">
+                                <i data-lucide="phone" class="jlt-icon" style="width: 18px; height: 18px;"></i>
+                                <input type="tel" name="noHp" class="jlt-input"
+                                       th:value="${penjual != null and penjual.noHp != null ? penjual.noHp : ''}"
+                                       placeholder="Contoh: 081234567890" required>
+                            </div>
+                        </div>
+
                         <div class="mb-3">
                             <label class="form-label fw-semibold small">Kategori Sumber Jelantah <span class="text-danger">*</span></label>
                             <select name="kategoriPenjual" class="form-select jlt-select" required>

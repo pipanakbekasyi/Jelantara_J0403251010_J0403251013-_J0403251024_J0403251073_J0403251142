@@ -11,6 +11,26 @@
     <link rel="stylesheet" th:href="@{/css/penjual.css}">
 </head>
 <body th:attr="data-flash-success=${flashSuccess},data-flash-error=${flashError},data-flash-warning=${flashWarning}">
+    <!-- Skeleton Shimmer Loading Overlay (Auto-dismiss & Non-blocking) -->
+    <div id="jltSkeletonOverlay" class="jlt-skeleton-overlay">
+        <div class="container" style="max-width: 720px;">
+            <div class="jlt-card p-4">
+                <div class="skeleton-box skeleton-line title mb-3"></div>
+                <div class="skeleton-box skeleton-line short mb-4"></div>
+                <div class="row g-3">
+                    <div class="col-6"><div class="skeleton-box" style="height: 110px;"></div></div>
+                    <div class="col-6"><div class="skeleton-box" style="height: 110px;"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        (function(){
+            var el = document.getElementById('jltSkeletonOverlay');
+            if(el){ setTimeout(function(){ el.style.opacity='0'; setTimeout(function(){ if(el && el.parentNode) el.parentNode.removeChild(el); }, 220); }, 250); }
+        })();
+    </script>
+
 
     <div class="app-layout flex-column flex-lg-row">
         <!-- Menyisipkan Sidebar Responsif Khusus Pusat -->
@@ -86,7 +106,79 @@
                     </div>
                 </div>
 
-                <!-- Grafik MDBootstrap / Chart.js -->
+                <!-- Indikator Kapasitas Tangki (Diagram Lingkaran) & Harga Acuan (Di Bawah Overview Harian) -->
+                <div class="row g-4 mb-4">
+                    <div class="col-xl-7">
+                        <div class="jlt-card h-100">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                                <div class="d-flex align-items-center gap-2">
+                                    <span class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width:36px;height:36px;background:#FFCA00;">
+                                        <i data-lucide="database" style="width:18px;height:18px;color:#18181B;"></i>
+                                    </span>
+                                    <div>
+                                        <span class="small text-secondary fw-semibold d-block">Monitoring Gudang Pusat</span>
+                                        <h5 class="fw-bold mb-0">Kapasitas Tangki Penampungan Minyak</h5>
+                                    </div>
+                                </div>
+                                <span th:class="${stok.persentaseKapasitas >= 80 ? 'badge-jlt-error' : 'badge-jlt-success'}"
+                                      th:text="${stok.persentaseKapasitas >= 80 ? 'Peringatan >= 80% (Hampir Penuh!)' : 'Kapasitas Aman (' + stok.persentaseKapasitas + '%)'}">Aman</span>
+                            </div>
+
+                            <div class="row align-items-center g-3 my-1">
+                                <div class="col-sm-6 text-center">
+                                    <div style="width: 205px; height: 205px; margin: 0 auto; position: relative;">
+                                        <canvas id="tankDoughnutChart"></canvas>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6">
+                                    <p class="small text-secondary mb-3">
+                                        Monitoring volume kapasitas tangki penampungan minyak jelantah Gudang Pusat secara real-time.
+                                    </p>
+                                    <div class="d-flex flex-wrap gap-2 small mb-3">
+                                        <span class="badge bg-white text-dark border px-3 py-2 rounded-pill">
+                                            <span class="d-inline-block rounded-circle me-1" style="width:10px;height:10px;background:#FFCA00;"></span>
+                                            Terisi: <strong th:text="${stok.jumlahUpdate} + ' L'">0 L</strong>
+                                        </span>
+                                        <span class="badge bg-white text-dark border px-3 py-2 rounded-pill">
+                                            <span class="d-inline-block rounded-circle me-1" style="width:10px;height:10px;background:#FFF3B8;border:1px solid #E0B100;"></span>
+                                            Sisa: <strong th:text="${stok.batasStok - stok.jumlahUpdate} + ' L'">1000 L</strong>
+                                        </span>
+                                    </div>
+                                    <form th:action="@{/pusat/reset-tangki}" method="post">
+                                        <button type="submit" class="btn-jlt-primary btn-sm w-100"
+                                                onclick="return confirm('Kirim stok minyak keluar & kosongkan tangki penampungan menjadi 0 Liter?')">
+                                            <i data-lucide="truck" style="width:16px;height:16px;"></i> Kosongkan Tangki Penampungan
+                                        </button>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="col-xl-5">
+                        <div class="jlt-card h-100 d-flex flex-column justify-content-between">
+                            <div>
+                                <div class="d-flex align-items-center gap-2 mb-2">
+                                    <span class="rounded-circle d-inline-flex align-items-center justify-content-center" style="width:36px;height:36px;background:#FFF3B8;">
+                                        <i data-lucide="coins" style="width:18px;height:18px;color:#926008;"></i>
+                                    </span>
+                                    <h5 class="fw-bold mb-0">Penetapan Harga Minyak per Liter</h5>
+                                </div>
+                                <p class="small text-secondary mb-3">Hanya Pusat yang berwenang mengubah harga acuan kalkulasi otomatis bagi seluruh Penjual.</p>
+                                <div class="p-3 rounded-4 mb-3" style="background:#FFFAE5;border:1px solid #FFE675;">
+                                    <small class="text-secondary d-block">Harga Beli Berlaku Saat Ini:</small>
+                                    <h3 class="fw-bold mb-0" style="color:#926008;" th:text="'Rp ' + ${#numbers.formatDecimal(hargaAcuan, 0, 'POINT', 0, 'COMMA')} + ' / Liter'">Rp 6.000 / Liter</h3>
+                                </div>
+                            </div>
+                            <form th:action="@{/pusat/update-harga}" method="post" class="d-flex flex-wrap gap-2 align-items-center">
+                                <input type="number" name="hargaBaru" class="form-control rounded-pill px-3 flex-grow-1" th:value="${hargaAcuan}" min="1000" step="500" required>
+                                <button type="submit" class="btn-jlt-secondary">Simpan Harga</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grafik MDBootstrap / Chart.js (Di Bawah Tangki) -->
                 <div class="row g-4 mb-4">
                     <div class="col-md-6">
                         <div class="jlt-card h-100">
@@ -98,42 +190,6 @@
                         <div class="jlt-card h-100">
                             <h6 class="fw-bold mb-3">Aktivitas Redeem 7 Hari Terakhir</h6>
                             <canvas id="grafikRedeemChart"></canvas>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Indikator Kapasitas Tangki & Penetapan Harga Acuan -->
-                <div class="row g-4 mb-4">
-                    <div class="col-xl-7">
-                        <div class="jlt-card h-100">
-                            <div class="d-flex flex-wrap justify-content-between align-items-center mb-2 gap-2">
-                                <h5 class="fw-bold mb-0">Indikator Kapasitas Penampungan Gudang (UC-04)</h5>
-                                <span th:class="${stok.persentaseKapasitas >= 80 ? 'badge-jlt-error' : 'badge-jlt-success'}"
-                                      th:text="${stok.persentaseKapasitas >= 80 ? 'Peringatan >= 80% (Hampir Penuh!)' : 'Kapasitas Aman'}">Aman</span>
-                            </div>
-                            <p class="small text-secondary mb-3">
-                                Volume Terkumpul: <strong th:text="${stok.jumlahUpdate} + ' Liter'">0 L</strong> dari Batas Maksimal <strong th:text="${stok.batasStok} + ' Liter'">1000 L</strong>
-                            </p>
-                            <div class="tank-progress-wrapper mb-3">
-                                <div class="tank-progress-fill"
-                                     th:classappend="${stok.persentaseKapasitas >= 80 ? 'warning-limit' : ''}"
-                                     th:style="'width: ' + ${stok.persentaseKapasitas} + '%;'"
-                                     th:text="${stok.persentaseKapasitas} + '%'">0%</div>
-                            </div>
-                            <form th:action="@{/pusat/reset-tangki}" method="post" class="d-flex justify-content-end">
-                                <button type="submit" class="btn-jlt-secondary btn-sm">Kirim / Kosongkan Tangki Penampungan</button>
-                            </form>
-                        </div>
-                    </div>
-
-                    <div class="col-xl-5">
-                        <div class="jlt-card h-100">
-                            <h5 class="fw-bold mb-2">Penetapan Harga Minyak per Liter (BR-06)</h5>
-                            <p class="small text-secondary mb-3">Hanya Pusat yang berwenang mengubah harga acuan kalkulasi otomatis.</p>
-                            <form th:action="@{/pusat/update-harga}" method="post" class="d-flex flex-wrap gap-2 align-items-center">
-                                <input type="number" name="hargaBaru" class="form-control rounded-pill px-3 flex-grow-1" th:value="${hargaAcuan}" min="1000" step="500" required>
-                                <button type="submit" class="btn-jlt-primary">Simpan Harga</button>
-                            </form>
                         </div>
                     </div>
                 </div>
@@ -574,7 +630,15 @@
                                 </div>
                                 <small class="text-secondary" th:text="${n.tanggal}">2026-11-13</small>
                             </div>
-                            <p class="small text-secondary mb-0" th:text="${n.pesan}"></p>
+                            <p class="small text-secondary mb-2" th:text="${n.pesan}"></p>
+                            <div class="d-flex flex-wrap gap-2" th:if="${n.kategoriAksi != 'UMUM'}">
+                                <a th:if="${n.kategoriAksi == 'TRANSAKSI_MINYAK'}" th:href="@{/pusat(menu='transaksi')}" class="btn-jlt-primary btn-sm px-3">
+                                    Kelola Transaksi Minyak &rarr;
+                                </a>
+                                <a th:if="${n.kategoriAksi == 'REDEEM_POIN'}" th:href="@{/pusat(menu='redeem')}" class="btn-jlt-secondary btn-sm px-3">
+                                    Kelola Verifikasi Redeem &rarr;
+                                </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -587,10 +651,7 @@
                 <div class="row g-4">
                     <div class="col-lg-4">
                         <div class="jlt-card text-center h-100">
-                            <div class="rounded-circle d-inline-flex align-items-center justify-content-center fw-bold fs-2 mb-3 shadow-sm"
-                                 style="width:88px;height:88px;background:#FFCA00;color:#18181B;">
-                                <i data-lucide="building-2" style="width:40px;height:40px;"></i>
-                            </div>
+                            <img src="/images/logo-jelantara.png" alt="Logo Pusat" class="rounded-circle mb-3 shadow-sm" style="width:92px;height:92px;object-fit:cover;border:3px solid #FFCA00;">
                             <h4 class="fw-bold mb-1" th:text="${pusat.namaGudang}">Gudang Bandung</h4>
                             <p class="small text-secondary mb-2" th:text="${pusat.email}">pusat@mail.com</p>
                             <span class="badge-jlt-success mb-3 d-inline-block">ROLE: SUPER ADMIN PUSAT</span>
@@ -603,8 +664,22 @@
                     </div>
                     <div class="col-lg-8">
                         <div class="jlt-card h-100">
-                            <h5 class="fw-bold mb-3 pb-2 border-bottom">Edit Profil Gudang Pusat</h5>
-                            <form th:action="@{/pusat/profile/update}" method="post" class="row g-3">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom gap-2">
+                                <h5 class="fw-bold mb-0">Detail &amp; Pengaturan Profil Gudang Pusat</h5>
+                                <button type="button" id="btnToggleEditPusat" onclick="toggleProfilEdit('viewProfilPusat','formProfilPusat','btnToggleEditPusat')" class="btn-jlt-primary btn-sm">
+                                    <i data-lucide="edit-3" style="width:15px;height:15px;"></i> Edit Profil
+                                </button>
+                            </div>
+
+                            <div id="viewProfilPusat" class="row g-3">
+                                <div class="col-md-6"><div class="p-3 rounded-4 border bg-light"><small class="text-secondary d-block">Nama Gudang</small><strong th:text="${pusat.namaGudang}">-</strong></div></div>
+                                <div class="col-md-6"><div class="p-3 rounded-4 border bg-light"><small class="text-secondary d-block">Penanggung Jawab</small><strong th:text="${pusat.nama}">-</strong></div></div>
+                                <div class="col-md-6"><div class="p-3 rounded-4 border bg-light"><small class="text-secondary d-block">Email Login</small><strong th:text="${pusat.email}">-</strong></div></div>
+                                <div class="col-md-6"><div class="p-3 rounded-4 border bg-light"><small class="text-secondary d-block">No. Telepon</small><strong th:text="${pusat.noTelepon}">-</strong></div></div>
+                                <div class="col-12"><div class="p-3 rounded-4 border bg-light"><small class="text-secondary d-block">Alamat Gudang</small><strong th:text="${pusat.alamat}">-</strong></div></div>
+                            </div>
+
+                            <form id="formProfilPusat" th:action="@{/pusat/profile/update}" method="post" class="row g-3 d-none">
                                 <div class="col-md-6">
                                     <label class="form-label fw-semibold small">Nama Gudang Pusat <span class="text-danger">*</span></label>
                                     <input type="text" name="namaGudang" class="form-control" th:value="${pusat.namaGudang}" required>
@@ -747,10 +822,11 @@
             <div>
                 <strong>Foto Bukti:</strong>
                 <div id="spNoFoto" class="small text-secondary fst-italic mt-1">Belum ada foto bukti diunggah.</div>
+                <div class="mt-3 pt-2 border-top"><strong class="d-block mb-2">Seluruh Riwayat Update (Tersimpan Utuh):</strong><div id="spRiwayatLogContainer" class="small"></div></div>
                 <img id="spFotoBukti" src="" alt="Bukti Transaksi" class="img-fluid rounded-3 border mt-2 d-none">
             </div>
         </div>
-        <button type="button" onclick="window.print()" class="btn-jlt-primary w-100">Cetak Bukti Transaksi Digital (PDF)</button>
+        <a id="spDownloadPdfBtn" href="#" class="btn-jlt-primary w-100">Download Template Bukti Pembayaran (PDF)</a>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
@@ -764,6 +840,50 @@
     <script th:inline="javascript">
         const grafikPenjualanData = /*[[${grafikPenjualan}]]*/ [];
         const grafikRedeemData = /*[[${grafikRedeem}]]*/ [];
+
+
+        // Diagram Lingkaran Interaktif Kapasitas Tangki Minyak Gudang Pusat
+        const stokTerisi = /*[[${stok.jumlahUpdate}]]*/ 0;
+        const stokBatas = /*[[${stok.batasStok}]]*/ 1000;
+        const sisaKapasitas = Math.max(0, stokBatas - stokTerisi);
+        const persenTerisi = /*[[${stok.persentaseKapasitas}]]*/ 0;
+
+        const ctxTank = document.getElementById('tankDoughnutChart');
+        if (ctxTank) {
+            new Chart(ctxTank, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Volume Terisi (Liter)', 'Sisa Kapasitas (Liter)'],
+                    datasets: [{
+                        data: [stokTerisi, sisaKapasitas],
+                        backgroundColor: [
+                            persenTerisi >= 80 ? '#DC2626' : '#FFCA00',
+                            '#FFF3B8'
+                        ],
+                        borderColor: '#FFFFFF',
+                        borderWidth: 3,
+                        hoverOffset: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    layout: { padding: 4 },
+                    cutout: '62%',
+                    animation: { animateRotate: true, animateScale: true },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    return ctx.label + ': ' + ctx.parsed.toLocaleString('id-ID') + ' L';
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
 
         // Init chart penjualan
         const ctxP = document.getElementById('grafikPenjualanChart');

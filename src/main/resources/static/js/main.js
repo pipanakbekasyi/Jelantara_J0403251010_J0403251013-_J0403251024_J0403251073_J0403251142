@@ -45,7 +45,7 @@ document.addEventListener("DOMContentLoaded", function () {
     hitungEstimasiRedeemForm();
 });
 
-// Menghitung estimasi otomatis pendapatan Rupiah dan Poin pada Form Order Penjual (Minimal 15L)
+// Menghitung estimasi otomatis & memperbarui Card Ringkasan Transaksi di sebelah Form Order Penjual
 function hitungEstimasiOrder() {
     const literInput = document.getElementById("inputJumlahMinyak");
     const hargaInput = document.getElementById("hargaAcuanLiter");
@@ -54,25 +54,110 @@ function hitungEstimasiOrder() {
     const liter = parseFloat(literInput.value) || 0;
     const harga = parseFloat(hargaInput.value) || 6000;
     const totalUang = Math.round(liter * harga);
-    const totalPoin = Math.round(liter * 10);
+    const totalPoin = liter >= 15 ? Math.floor(liter / 15) * 15 : 0;
 
     const elRp = document.getElementById("estimasiRupiah");
     const elPoin = document.getElementById("estimasiPoin");
     if (elRp) elRp.innerText = "Rp " + totalUang.toLocaleString("id-ID");
     if (elPoin) elPoin.innerText = "+" + totalPoin + " Poin";
+
+    const sumLiter = document.getElementById("sumOrderLiter");
+    if (sumLiter) sumLiter.innerText = liter + " Liter";
+
+    const metode = document.getElementById("metodePembayaranOrder")?.value || "Bank";
+    const penyedia = document.getElementById("namaPenyediaOrder")?.value || "BCA";
+    const sumMetode = document.getElementById("sumOrderMetode");
+    if (sumMetode) sumMetode.innerText = metode + " - " + penyedia;
+
+    const noRek = document.getElementById("inputNomorOrder")?.value || "-";
+    const sumRek = document.getElementById("sumOrderRekening");
+    if (sumRek) sumRek.innerText = noRek.trim() !== "" ? noRek : "-";
+
+    const tipeAlamat = document.querySelector('input[name="tipeAlamatOrder"]:checked')?.value || "SAAT_INI";
+    const alamatProfil = document.getElementById("teksAlamatProfilOrder")?.innerText || "-";
+    const alamatKustom = document.getElementById("inputAlamatOrderKustom")?.value || "";
+    const sumAlamat = document.getElementById("sumOrderAlamat");
+    if (sumAlamat) {
+        sumAlamat.innerText = (tipeAlamat === "KUSTOM" && alamatKustom.trim() !== "") ? alamatKustom : alamatProfil;
+    }
 }
 
-// Menghitung estimasi poin yang dibutuhkan pada Form Tab Redeem di POV Penjual
+// Menghitung estimasi poin multi-produk & memperbarui Card Ringkasan Redeem di sebelah Form Redeem Penjual
 function hitungEstimasiRedeemForm() {
-    const selProduk = document.getElementById("selectProdukRedeem");
-    const qtyInput = document.getElementById("inputQtyRedeem");
+    const rows = document.querySelectorAll(".produk-redeem-row");
     const totalPoinEl = document.getElementById("estimasiPoinRedeem");
-    if (!selProduk || !qtyInput || !totalPoinEl) return;
+    if (!rows.length || !totalPoinEl) return;
 
-    const selectedOpt = selProduk.options[selProduk.selectedIndex];
-    const poinSatuan = parseFloat(selectedOpt ? selectedOpt.getAttribute("data-poin") : 0) || 0;
-    const qty = parseInt(qtyInput.value, 10) || 1;
-    totalPoinEl.innerText = (poinSatuan * qty).toLocaleString("id-ID") + " Poin";
+    let totalPoin = 0;
+    let ringkasanTeks = [];
+
+    rows.forEach(row => {
+        const sel = row.querySelector(".select-produk-item");
+        const qtyInp = row.querySelector(".input-qty-item");
+        if (sel && qtyInp) {
+            const opt = sel.options[sel.selectedIndex];
+            const poinSatuan = parseFloat(opt ? opt.getAttribute("data-poin") : 0) || 0;
+            const namaProduk = opt ? (opt.getAttribute("data-nama") || opt.text) : "-";
+            const qty = Math.max(1, parseInt(qtyInp.value, 10) || 1);
+            totalPoin += (poinSatuan * qty);
+            ringkasanTeks.push(qty + "x " + namaProduk.split("(")[0].trim());
+        }
+    });
+
+    totalPoinEl.innerText = totalPoin.toLocaleString("id-ID") + " Poin";
+
+    const sumProd = document.getElementById("sumRedeemProduk");
+    if (sumProd) sumProd.innerText = ringkasanTeks.join(", ");
+    const sumQty = document.getElementById("sumRedeemQty");
+    if (sumQty) sumQty.innerText = rows.length + " Macam Produk";
+    const sumSat = document.getElementById("sumRedeemSatuan");
+    if (sumSat) sumSat.innerText = totalPoin.toLocaleString("id-ID") + " Poin Total";
+
+    const saldoAwal = parseFloat(document.getElementById("saldoPoinPenjualHidden")?.value || 0) || 0;
+    const sisaPoin = saldoAwal - totalPoin;
+    const sumSisa = document.getElementById("sumRedeemSisaPoin");
+    if (sumSisa) {
+        sumSisa.innerText = (sisaPoin >= 0 ? sisaPoin.toLocaleString("id-ID") + " Poin" : "Poin Kurang (" + sisaPoin + ")");
+    }
+
+    const tipeAlamat = document.querySelector('input[name="tipeAlamatRedeem"]:checked')?.value || "SAAT_INI";
+    const alamatProfil = document.getElementById("teksAlamatProfilRedeem")?.innerText || "-";
+    const alamatKustom = document.getElementById("inputAlamatRedeemKustom")?.value || "";
+    const sumAlamat = document.getElementById("sumRedeemAlamat");
+    if (sumAlamat) {
+        sumAlamat.innerText = (tipeAlamat === "KUSTOM" && alamatKustom.trim() !== "") ? alamatKustom : alamatProfil;
+    }
+}
+
+// Menambah baris dropdown produk tukar lain pada form Redeem Penjual
+function tambahBarisProdukRedeem() {
+    const container = document.getElementById("containerMultiProdukRedeem");
+    if (!container) return;
+    const firstRow = container.querySelector(".produk-redeem-row");
+    if (!firstRow) return;
+
+    const clone = firstRow.cloneNode(true);
+    const qtyInput = clone.querySelector(".input-qty-item");
+    if (qtyInput) qtyInput.value = "1";
+    container.appendChild(clone);
+    if (window.lucide) lucide.createIcons();
+    hitungEstimasiRedeemForm();
+}
+
+// Menghapus baris dropdown produk tukar pada form Redeem Penjual (minimal 1 produk)
+function hapusBarisProdukRedeem(btnEl) {
+    const container = document.getElementById("containerMultiProdukRedeem");
+    if (!container) return;
+    if (container.querySelectorAll(".produk-redeem-row").length <= 1) {
+        if (typeof Swal !== "undefined") {
+            Swal.fire({ icon: 'warning', title: 'Minimal 1 Produk', text: 'Transaksi redeem harus menyertakan minimal 1 produk olahan.', confirmButtonColor: '#FFCA00' });
+        } else {
+            alert('Transaksi redeem harus menyertakan minimal 1 produk olahan.');
+        }
+        return;
+    }
+    btnEl.closest(".produk-redeem-row").remove();
+    hitungEstimasiRedeemForm();
 }
 
 // Membuka Slide-out Side Panel untuk menampilkan Detail Lengkap Transaksi Jual Minyak
@@ -99,6 +184,7 @@ function bukaDetailTransaksi(buttonEl) {
     setSpText("spKetBukti", buttonEl.getAttribute("data-ketbukti") || "Belum ada catatan bukti update.");
 
     tampilkanFotoSidePanel(buttonEl.getAttribute("data-foto"));
+    muatRiwayatLogDanLinkPdf("JUAL_MINYAK", id);
     bukaSidePanel();
 }
 
@@ -130,6 +216,7 @@ function bukaDetailTransaksiUnified(rowEl) {
     setSpText("spKetBukti", rowEl.getAttribute("data-ketbukti") || "Belum ada catatan bukti update.");
 
     tampilkanFotoSidePanel(rowEl.getAttribute("data-foto"));
+    muatRiwayatLogDanLinkPdf(jenis || "JUAL_MINYAK", rowEl.getAttribute("data-id"));
     bukaSidePanel();
 }
 
@@ -150,6 +237,7 @@ function bukaDetailRedeem(btnEl) {
     setSpText("spKetBukti", btnEl.getAttribute("data-ketbukti") || "Belum ada bukti update.");
 
     tampilkanFotoSidePanel(btnEl.getAttribute("data-foto"));
+    muatRiwayatLogDanLinkPdf("REDEEM", btnEl.getAttribute("data-id"));
     bukaSidePanel();
 }
 
@@ -591,3 +679,72 @@ document.addEventListener("DOMContentLoaded", function () {
     initBootstrapPagination("listTugasPetugasContainer", ".tugas-ptg-page-item", 4);
     initBootstrapPagination("listRedeemPetugasContainer", ".redeem-ptg-page-item", 4);
 });
+
+// Menghapus Skeleton Shimmer Overlay segera setelah DOM siap agar tidak pernah blocking
+document.addEventListener("DOMContentLoaded", function () {
+    const skeletonEl = document.getElementById("jltSkeletonOverlay");
+    if (skeletonEl) {
+        skeletonEl.style.opacity = "0";
+        setTimeout(() => {
+            if (skeletonEl && skeletonEl.parentNode) skeletonEl.parentNode.removeChild(skeletonEl);
+        }, 200);
+    }
+});
+
+
+// Memuat seluruh baris riwayat update (append-only) dari /api/riwayat-update & mengatur link Download PDF Template
+function muatRiwayatLogDanLinkPdf(jenis, id) {
+    const pdfBtn = document.getElementById("spDownloadPdfBtn");
+    if (pdfBtn && id) {
+        pdfBtn.href = "/transaksi/bukti/" + id + "?jenis=" + encodeURIComponent(jenis);
+    }
+
+    const logBox = document.getElementById("spRiwayatLogContainer");
+    if (!logBox || !id) return;
+    logBox.innerHTML = '<div class="text-secondary fst-italic">Memuat rekaman riwayat update...</div>';
+
+    fetch("/api/riwayat-update?jenis=" + encodeURIComponent(jenis) + "&id=" + encodeURIComponent(id))
+        .then(res => res.json())
+        .then(data => {
+            if (!data || data.length === 0) {
+                logBox.innerHTML = '<div class="text-secondary fst-italic">Belum ada rekaman log update tambahan.</div>';
+                return;
+            }
+            let html = "";
+            data.forEach((item, idx) => {
+                html += `<div class="audit-log-item">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <strong class="text-dark">#${idx + 1} ${item.status || '-'}</strong>
+                        <span class="text-secondary" style="font-size:11px;">${item.waktu || ''}</span>
+                    </div>
+                    <div class="text-secondary mb-1" style="font-size:11px;">Oleh: ${item.namaAktor || '-'} (${item.aktorRole || '-'})</div>
+                    <div class="text-dark">${item.keteranganBukti || '-'}</div>
+                    ${item.fotoBukti ? `<img src="${item.fotoBukti}" alt="Bukti" class="img-fluid rounded-2 border mt-2" style="max-height:110px;">` : ''}
+                </div>`;
+            });
+            logBox.innerHTML = html;
+        })
+        .catch(() => {
+            logBox.innerHTML = '<div class="text-secondary fst-italic">Gagal memuat riwayat log.</div>';
+        });
+}
+
+
+// Toggle tampilan ringkasan profil vs form edit profil
+function toggleProfilEdit(viewId, formId, btnId) {
+    const viewEl = document.getElementById(viewId);
+    const formEl = document.getElementById(formId);
+    const btnEl = document.getElementById(btnId);
+    if (!formEl) return;
+    const isFormHidden = formEl.classList.contains("d-none");
+    if (isFormHidden) {
+        formEl.classList.remove("d-none");
+        if (viewEl) viewEl.classList.add("d-none");
+        if (btnEl) btnEl.innerHTML = '<i data-lucide="x" style="width:15px;height:15px;"></i> Batal Edit';
+    } else {
+        formEl.classList.add("d-none");
+        if (viewEl) viewEl.classList.remove("d-none");
+        if (btnEl) btnEl.innerHTML = '<i data-lucide="edit-3" style="width:15px;height:15px;"></i> Edit Profil';
+    }
+    if (window.lucide) lucide.createIcons();
+}

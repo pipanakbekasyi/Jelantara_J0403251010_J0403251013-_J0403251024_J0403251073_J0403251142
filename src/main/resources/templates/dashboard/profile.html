@@ -9,6 +9,26 @@
     <link rel="stylesheet" th:href="@{/css/penjual.css}">
 </head>
 <body th:attr="data-flash-success=${flashSuccess},data-flash-error=${flashError}">
+    <!-- Skeleton Shimmer Loading Overlay (Auto-dismiss & Non-blocking) -->
+    <div id="jltSkeletonOverlay" class="jlt-skeleton-overlay">
+        <div class="container" style="max-width: 720px;">
+            <div class="jlt-card p-4">
+                <div class="skeleton-box skeleton-line title mb-3"></div>
+                <div class="skeleton-box skeleton-line short mb-4"></div>
+                <div class="row g-3">
+                    <div class="col-6"><div class="skeleton-box" style="height: 110px;"></div></div>
+                    <div class="col-6"><div class="skeleton-box" style="height: 110px;"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        (function(){
+            var el = document.getElementById('jltSkeletonOverlay');
+            if(el){ setTimeout(function(){ el.style.opacity='0'; setTimeout(function(){ if(el && el.parentNode) el.parentNode.removeChild(el); }, 220); }, 250); }
+        })();
+    </script>
+
 
     <div th:replace="~{fragments/navbar :: main-navbar('profile')}"></div>
 
@@ -16,10 +36,7 @@
         <div class="row g-4">
             <div class="col-lg-4">
                 <div class="jlt-card text-center h-100">
-                    <div class="rounded-circle d-inline-flex align-items-center justify-content-center fw-bold fs-2 mb-3 shadow-sm"
-                         style="width:88px;height:88px;background:#FFCA00;color:#18181B;">
-                        <span th:text="${#strings.substring(penjual.namaPenjual, 0, 2).toUpperCase()}">BS</span>
-                    </div>
+                    <img src="/images/avatar-default.jpg" alt="Foto Profil" class="rounded-circle mb-3 shadow-sm" style="width:92px;height:92px;object-fit:cover;border:3px solid #FFCA00;">
                     <h4 class="fw-bold mb-1" th:text="${penjual.namaPenjual}">Budi Santoso</h4>
                     <p class="small text-secondary mb-2" th:text="${penjual.email}">budi@gmail.com</p>
                     <span class="badge-jlt-success mb-3 d-inline-block" th:text="'Kategori: ' + ${penjual.kategoriPenjual}">Rumah Tangga</span>
@@ -47,15 +64,29 @@
 
             <div class="col-lg-8">
                 <div class="jlt-card h-100">
-                    <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 pb-2 border-bottom gap-2">
                         <div>
-                            <h5 class="fw-bold mb-0">Edit Profil &amp; Rekening Pencairan</h5>
-                            <small class="text-secondary">Perbarui identitas, alamat utama, serta metode pencairan Bank atau E-Wallet Anda.</small>
+                            <h5 class="fw-bold mb-0">Detail &amp; Pengaturan Profil</h5>
+                            <small class="text-secondary">Lihat informasi akun Anda atau klik tombol Edit Profil untuk memperbarui data.</small>
                         </div>
-                        <span class="badge-jlt-success">ROLE: PENJUAL</span>
+                        <div class="d-flex align-items-center gap-2">
+                            <span class="badge-jlt-success">ROLE: PENJUAL</span>
+                            <button type="button" id="btnToggleEditPenjual" onclick="toggleProfilEdit('viewProfilPenjual','formProfilPenjual','btnToggleEditPenjual')" class="btn-jlt-primary btn-sm">
+                                <i data-lucide="edit-3" style="width:15px;height:15px;"></i> Edit Profil
+                            </button>
+                        </div>
                     </div>
 
-                    <form th:action="@{/penjual/profile/update}" method="post" class="row g-3">
+                    <div id="viewProfilPenjual" class="row g-3">
+                        <div class="col-md-6"><div class="p-3 rounded-4 border bg-light"><small class="text-secondary d-block">Nama Lengkap</small><strong th:text="${penjual.namaPenjual}">-</strong></div></div>
+                        <div class="col-md-6"><div class="p-3 rounded-4 border bg-light"><small class="text-secondary d-block">Email Login</small><strong th:text="${penjual.email}">-</strong></div></div>
+                        <div class="col-md-6"><div class="p-3 rounded-4 border bg-light"><small class="text-secondary d-block">Nomor HP / WhatsApp</small><strong th:text="${penjual.noHp != null ? penjual.noHp : '-'}">-</strong></div></div>
+                        <div class="col-md-6"><div class="p-3 rounded-4 border bg-light"><small class="text-secondary d-block">Kategori Sumber Jelantah</small><strong th:text="${penjual.kategoriPenjual}">-</strong></div></div>
+                        <div class="col-md-6"><div class="p-3 rounded-4 border bg-light"><small class="text-secondary d-block">Rekening / E-Wallet</small><strong th:text="${penjual.infoPembayaranLengkap}">-</strong></div></div>
+                        <div class="col-md-6"><div class="p-3 rounded-4 border bg-light"><small class="text-secondary d-block">Alamat Utama</small><strong th:text="${penjual.alamat != null ? penjual.alamat : '-'}">-</strong></div></div>
+                    </div>
+
+                    <form id="formProfilPenjual" th:action="@{/penjual/profile/update}" method="post" class="row g-3 d-none">
                         <div class="col-md-6">
                             <label class="form-label fw-semibold small">Nama Lengkap <span class="text-danger">*</span></label>
                             <input type="text" name="namaPenjual" class="form-control" th:value="${penjual.namaPenjual}" required>

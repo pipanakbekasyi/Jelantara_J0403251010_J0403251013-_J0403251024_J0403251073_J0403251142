@@ -3,11 +3,9 @@
 <body>
     <!-- Sidebar Responsif untuk Role PUSAT -->
     <div th:fragment="pusat-sidebar(activeMenu, pusat)">
-        <div class="d-lg-none bg-white border-bottom px-3 py-2 d-flex justify-content-between align-items-center sticky-top">
+        <div class="d-lg-none bg-white border-bottom px-3 py-2 d-flex justify-content-between align-items-center sticky-top mobile-sticky-header">
             <a class="fw-bold fs-5 text-dark text-decoration-none d-flex align-items-center gap-2" th:href="@{/pusat}">
-                <span class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width:34px;height:34px;background:#FFCA00;">
-                    <i data-lucide="droplet" style="width:18px;height:18px;"></i>
-                </span>
+                <img src="/images/logo-jelantara.png" alt="Logo Jelantara" class="jlt-brand-logo-img" style="width:34px;height:34px;">
                 JELANTARA PUSAT
             </a>
             <button class="btn-jlt-secondary py-1 px-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#pusatOffcanvas">
@@ -17,9 +15,7 @@
 
         <aside class="app-sidebar d-none d-lg-flex">
             <a class="fw-bold fs-4 text-dark text-decoration-none d-flex align-items-center gap-2 mb-4 px-2" th:href="@{/pusat}">
-                <span class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width:38px;height:38px;background:#FFCA00;">
-                    <i data-lucide="droplet" style="width:20px;height:20px;"></i>
-                </span>
+                <img src="/images/logo-jelantara.png" alt="Logo Jelantara" class="jlt-brand-logo-img">
                 JELANTARA
             </a>
             <div class="p-3 rounded-4 mb-4" style="background:#FFFAE5;border:1px solid #FFE675;">
@@ -84,11 +80,9 @@
 
     <!-- Sidebar Responsif untuk Role PETUGAS -->
     <div th:fragment="petugas-sidebar(activeMenu, petugas)">
-        <div class="d-lg-none bg-white border-bottom px-3 py-2 d-flex justify-content-between align-items-center sticky-top">
+        <div class="d-lg-none bg-white border-bottom px-3 py-2 d-flex justify-content-between align-items-center sticky-top mobile-sticky-header">
             <a class="fw-bold fs-5 text-dark text-decoration-none d-flex align-items-center gap-2" th:href="@{/petugas/transaksi}">
-                <span class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width:34px;height:34px;background:#FFCA00;">
-                    <i data-lucide="truck" style="width:18px;height:18px;"></i>
-                </span>
+                <img src="/images/logo-jelantara.png" alt="Logo Jelantara" class="jlt-brand-logo-img" style="width:34px;height:34px;">
                 KURIR JELANTARA
             </a>
             <button class="btn-jlt-secondary py-1 px-3" type="button" data-bs-toggle="offcanvas" data-bs-target="#petugasOffcanvas">
@@ -98,9 +92,7 @@
 
         <aside class="app-sidebar d-none d-lg-flex">
             <a class="fw-bold fs-4 text-dark text-decoration-none d-flex align-items-center gap-2 mb-4 px-2" th:href="@{/petugas/transaksi}">
-                <span class="d-inline-flex align-items-center justify-content-center rounded-circle" style="width:38px;height:38px;background:#FFCA00;">
-                    <i data-lucide="truck" style="width:20px;height:20px;"></i>
-                </span>
+                <img src="/images/logo-jelantara.png" alt="Logo Jelantara" class="jlt-brand-logo-img">
                 JELANTARA
             </a>
             <div class="p-3 rounded-4 mb-4" style="background:#FFFAE5;border:1px solid #FFE675;">
@@ -114,6 +106,9 @@
                 </a>
                 <a class="sidebar-nav-link" th:classappend="${activeMenu == 'redeem' ? 'active' : ''}" th:href="@{/petugas/redeem}">
                     <i data-lucide="gift" style="width:18px;height:18px;"></i> Tugas Antar Redeem
+                </a>
+                <a class="sidebar-nav-link" th:classappend="${activeMenu == 'riwayat' ? 'active' : ''}" th:href="@{/petugas/riwayat}">
+                    <i data-lucide="history" style="width:18px;height:18px;"></i> Riwayat Penugasan
                 </a>
                 <a class="sidebar-nav-link" th:classappend="${activeMenu == 'notifikasi' ? 'active' : ''}" th:href="@{/petugas/notifikasi}">
                     <i data-lucide="bell" style="width:18px;height:18px;"></i>
@@ -141,6 +136,7 @@
                 </div>
                 <a class="sidebar-nav-link" th:classappend="${activeMenu == 'transaksi' ? 'active' : ''}" th:href="@{/petugas/transaksi}">Tugas Jual Minyak</a>
                 <a class="sidebar-nav-link" th:classappend="${activeMenu == 'redeem' ? 'active' : ''}" th:href="@{/petugas/redeem}">Tugas Antar Redeem</a>
+                <a class="sidebar-nav-link" th:classappend="${activeMenu == 'riwayat' ? 'active' : ''}" th:href="@{/petugas/riwayat}">Riwayat Penugasan</a>
                 <a class="sidebar-nav-link" th:classappend="${activeMenu == 'notifikasi' ? 'active' : ''}" th:href="@{/petugas/notifikasi}">
                     <span>Notifikasi</span>
                     <span th:if="${unreadNotif != null and unreadNotif > 0}" class="notif-badge-dot" th:text="${unreadNotif}">1</span>

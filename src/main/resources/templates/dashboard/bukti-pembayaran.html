@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="'Bukti Pembayaran ' + ${kodeResi} + ' - Jelantara'">Bukti Pembayaran - Jelantara</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/global.css}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <style>
+        body { background-color: #F4F4F5 !important; }
+        .receipt-sheet {
+            max-width: 820px;
+            margin: 0 auto;
+            background: #FFFFFF;
+            border-radius: 16px;
+            padding: 36px;
+            box-shadow: 0 8px 30px rgba(24, 24, 27, 0.08);
+            border: 1px solid #E4E4E7;
+        }
+        .receipt-header {
+            border-bottom: 3px solid #FFCA00;
+            padding-bottom: 18px;
+            margin-bottom: 24px;
+        }
+        .receipt-table th {
+            background-color: #FFFAE5;
+            color: #926008;
+            font-weight: 600;
+            border-color: #FFE675;
+        }
+        .receipt-log-card {
+            border: 1px solid #E4E4E7;
+            border-left: 4px solid #FFCA00;
+            border-radius: 10px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
+            page-break-inside: avoid;
+        }
+    </style>
+</head>
+<body>
+    <!-- Action Bar (Sticky) -->
+    <div class="bg-white border-bottom py-3 sticky-top jlt-sticky-navbar mb-4">
+        <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2" style="max-width: 860px;">
+            <a href="javascript:history.back()" class="btn-jlt-outline btn-sm">
+                <i data-lucide="arrow-left" style="width:16px;height:16px;"></i> Kembali
+            </a>
+            <div class="d-flex align-items-center gap-2">
+                <span class="small text-secondary d-none d-sm-inline">Template Bukti Resmi PDF</span>
+                <button type="button" id="btnDownloadPdfFile" onclick="downloadBuktiSebagaiPdf()" class="btn-jlt-primary">
+                    <i data-lucide="file-down" style="width:18px;height:18px;"></i> Download Bukti Pembayaran (.PDF)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <div class="container pb-5">
+        <!-- AREA TEMPLATE PDF RESMI -->
+        <div id="areaTemplateBuktiPdf" class="receipt-sheet">
+            <div class="receipt-header d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div class="d-flex align-items-center gap-3">
+                    <img src="/images/logo-jelantara.png" alt="Logo Jelantara" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:2px solid #FFCA00;">
+                    <div>
+                        <h4 class="fw-bold mb-0" style="color:#18181B;">JELANTARA</h4>
+                        <div class="small text-secondary" th:text="${pusat != null ? pusat.namaGudang + ' • ' + pusat.alamat : 'Pusat Pengelolaan Minyak Jelantah'}">Gudang Pusat</div>
+                        <div class="small text-secondary" th:text="${pusat != null ? 'Telp: ' + pusat.noTelepon + ' | ' + pusat.email : ''}"></div>
+                    </div>
+                </div>
+                <div class="text-sm-end">
+                    <span class="badge-jlt-success mb-1 d-inline-block" th:text="${jenisTransaksi == 'REDEEM' ? 'BUKTI PENUKARAN POIN' : 'BUKTI PEMBAYARAN PENJUALAN'}">BUKTI PEMBAYARAN</span>
+                    <h5 class="fw-bold mb-0" th:text="${kodeResi}">JLT-000001</h5>
+                    <small class="text-secondary" th:if="${transaksi != null}" th:text="'Tanggal: ' + ${transaksi.tanggalTransaksi}">Tanggal</small>
+                    <small class="text-secondary" th:if="${redeem != null}" th:text="'Tanggal: ' + ${redeem.tglPenukaran}">Tanggal</small>
+                </div>
+            </div>
+
+            <!-- DATA TRANSAKSI JUAL MINYAK -->
+            <div th:if="${transaksi != null}">
+                <div class="row g-3 mb-4 small">
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-3 border h-100">
+                            <div class="text-secondary mb-1">Informasi Penjual / Mitra:</div>
+                            <div class="fw-bold fs-6" th:text="${transaksi.namaPenjualTransient}">Budi Santoso</div>
+                            <div class="mt-1"><strong>Alamat Penjemputan:</strong> <span th:text="${transaksi.lokasiPenjemputan}">Jl. Melati</span></div>
+                            <div class="mt-1"><strong>Catatan Penjual:</strong> <span th:text="${transaksi.catatan != null ? transaksi.catatan : '-'}">-</span></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-3 border h-100">
+                            <div class="text-secondary mb-1">Informasi Pencairan &amp; Operasional:</div>
+                            <div><strong>Metode Pencairan:</strong> <span th:text="${transaksi.infoRekeningLengkap}">Bank - BCA</span></div>
+                            <div class="mt-1"><strong>Kurir Penjemput:</strong> <span th:text="${transaksi.namaPetugasTransient}">Andi Pratama</span></div>
+                            <div class="mt-1"><strong>Status Transaksi:</strong> <span class="fw-bold" style="color:#926008;" th:text="${transaksi.status}">Selesai</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold mb-2">Rincian Penjualan Minyak Jelantah</h6>
+                <table class="table table-bordered receipt-table small mb-4">
+                    <thead>
+                        <tr>
+                            <th>Deskripsi Item</th>
+                            <th class="text-end">Volume</th>
+                            <th class="text-end">Harga / Liter</th>
+                            <th class="text-end">Bonus Poin</th>
+                            <th class="text-end">Total Pembayaran</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="fw-semibold">Penyetoran Minyak Jelantah Terverifikasi</td>
+                            <td class="text-end" th:text="${transaksi.jumlahMinyak} + ' Liter'">15.0 Liter</td>
+                            <td class="text-end" th:text="'Rp ' + ${#numbers.formatDecimal(transaksi.hargaMinyak, 0, 'POINT', 0, 'COMMA')}">Rp 6.000</td>
+                            <td class="text-end fw-semibold" style="color:#926008;" th:text="'+' + ${#numbers.formatDecimal(transaksi.hasilPoint, 0, 'POINT', 0, 'COMMA')} + ' Poin'">+150 Poin</td>
+                            <td class="text-end fw-bold fs-6" th:text="'Rp ' + ${#numbers.formatDecimal(transaksi.totalHarga, 0, 'POINT', 0, 'COMMA')}">Rp 90.000</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- DATA TRANSAKSI REDEEM POIN -->
+            <div th:if="${redeem != null}">
+                <div class="row g-3 mb-4 small">
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-3 border h-100">
+                            <div class="text-secondary mb-1">Penerima Reward:</div>
+                            <div class="fw-bold fs-6" th:text="${redeem.namaPenjualTransient}">Budi Santoso</div>
+                            <div class="mt-1"><strong>Alamat Pengantaran:</strong> <span th:text="${redeem.alamatPengantaran}">Jl. Melati</span></div>
+                            <div class="mt-1"><strong>Catatan:</strong> <span th:text="${redeem.catatan != null ? redeem.catatan : '-'}">-</span></div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="p-3 rounded-3 border h-100">
+                            <div class="text-secondary mb-1">Informasi Pengantaran:</div>
+                            <div><strong>Kurir Pengantar:</strong> <span th:text="${redeem.namaPetugasTransient}">Andi Pratama</span></div>
+                            <div class="mt-1"><strong>Status Redeem:</strong> <span class="fw-bold" style="color:#926008;" th:text="${redeem.status}">Selesai</span></div>
+                            <div class="mt-1"><strong>Sisa Saldo Poin:</strong> <span th:text="${#numbers.formatDecimal(redeem.jumlahPoinSisa, 0, 'POINT', 0, 'COMMA')} + ' Poin'">200 Poin</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <h6 class="fw-bold mb-2">Rincian Produk Penukaran Poin</h6>
+                <table class="table table-bordered receipt-table small mb-4">
+                    <thead>
+                        <tr>
+                            <th>Produk Olahan</th>
+                            <th class="text-end">Total Poin Ditukar</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td class="fw-semibold" th:text="${redeem.namaProdukTransient}">1x Sabun Cuci Piring</td>
+                            <td class="text-end fw-bold fs-6" style="color:#926008;" th:text="${#numbers.formatDecimal(redeem.jumlahPoin, 0, 'POINT', 0, 'COMMA')} + ' Poin'">150 Poin</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- RIWAYAT LOG UPDATE TRANSAKSI (APPEND-ONLY, TIDAK TERTIMPA) -->
+            <div class="mt-4">
+                <h6 class="fw-bold mb-2">Rekaman Riwayat Update &amp; Bukti Transaksi (Kronologis)</h6>
+                <div th:if="${#lists.isEmpty(riwayatLog)}" class="small text-secondary fst-italic p-3 border rounded-3">
+                    <div th:if="${transaksi != null}" th:text="${transaksi.keteranganBukti != null ? transaksi.keteranganBukti : 'Belum ada catatan update tambahan.'}"></div>
+                    <div th:if="${redeem != null}" th:text="${redeem.keteranganBukti != null ? redeem.keteranganBukti : 'Belum ada catatan update tambahan.'}"></div>
+                </div>
+
+                <div th:each="log, stat : ${riwayatLog}" class="receipt-log-card small">
+                    <div class="d-flex flex-wrap justify-content-between align-items-center mb-1 gap-1">
+                        <div>
+                            <span class="badge bg-warning text-dark me-1" th:text="'#' + ${stat.count}">#1</span>
+                            <strong th:text="${log.status}">Status</strong>
+                            <span class="text-secondary ms-1" th:text="'oleh ' + ${log.namaAktor} + ' (' + ${log.aktorRole} + ')'"></span>
+                        </div>
+                        <span class="text-secondary" th:text="${log.waktuFormatted}">19 Nov 2026</span>
+                    </div>
+                    <div class="text-dark" th:text="${log.keteranganBukti}">Keterangan bukti...</div>
+                    <div th:if="${log.fotoBukti != null and !log.fotoBukti.isEmpty()}" class="mt-2">
+                        <img th:src="${log.fotoBukti}" alt="Foto Bukti" class="rounded-3 border" style="max-height:130px;max-width:100%;">
+                    </div>
+                </div>
+            </div>
+
+            <div class="border-top mt-4 pt-3 d-flex justify-content-between align-items-center small text-secondary">
+                <span>Dokumen bukti pembayaran digital sah yang diterbitkan otomatis oleh Sistem Jelantara.</span>
+                <span class="fw-semibold" th:text="'Resi: ' + ${kodeResi}">JLT-000001</span>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script th:inline="javascript">
+        if (window.lucide) lucide.createIcons();
+        const kodeResiPdf = /*[[${kodeResi}]]*/ 'JLT-000000';
+
+        function downloadBuktiSebagaiPdf() {
+            const btn = document.getElementById('btnDownloadPdfFile');
+            const element = document.getElementById('areaTemplateBuktiPdf');
+            if (!element || typeof html2pdf === 'undefined') return;
+
+            if (btn) {
+                btn.disabled = true;
+                btn.innerText = 'Membuat file PDF...';
+            }
+
+            const opt = {
+                margin:       [10, 10, 10, 10],
+                filename:     'Bukti_Pembayaran_' + kodeResiPdf + '.pdf',
+                image:        { type: 'jpeg', quality: 0.96 },
+                html2canvas:  { scale: 2, useCORS: true },
+                jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            html2pdf().set(opt).from(element).save().then(() => {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.innerHTML = '<i data-lucide="file-down" style="width:18px;height:18px;"></i> Download Bukti Pembayaran (.PDF)';
+                    if (window.lucide) lucide.createIcons();
+                }
+            });
+        }
+    </script>
+</body>
+</html>

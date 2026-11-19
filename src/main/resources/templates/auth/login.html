@@ -7,32 +7,36 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" th:href="@{/css/global.css}">
     <link rel="stylesheet" th:href="@{/css/auth.css}">
+    <script th:if="${googleConfigured}" src="https://accounts.google.com/gsi/client" async defer></script>
 </head>
 <body th:attr="data-flash-success=${flashSuccess},data-flash-error=${flashError}">
     <div class="row g-0 auth-split-wrapper">
-        <!-- Panel Kiri: Ilustrasi Maskot Kurir 3D di atas latar Soft Yellow -->
-        <div class="col-lg-6 auth-mascot-panel">
-            <div class="mascot-avatar-3d mb-4">
-                <i data-lucide="truck" style="width:76px;height:76px;color:#18181B;"></i>
-            </div>
+        <div class="col-lg-6 auth-mascot-panel d-none d-lg-flex">
+            <img src="/images/mascot-kurir-login.jpg" alt="Maskot Kurir Jelantara" class="auth-mascot-img mb-4">
             <h2 class="fw-bold text-center">Ekosistem Digital Jelantara</h2>
             <p class="text-secondary text-center mb-3" style="max-width: 400px;">
-                Sistem otomatis mendeteksi hak akses akun Anda (RBAC) dan mengarahkan ke halaman yang sesuai.
+                Kelola penyetoran minyak jelantah, pantau armada penjemputan secara real-time, dan tukarkan poin berkah Anda.
             </p>
-            <div class="jlt-card p-3 small w-100" style="max-width: 400px;">
-                <div class="fw-bold mb-1">Akun Demo Sesuai Seed SQL:</div>
-                <div>• <strong>Pusat:</strong> pusat@mail.com / pusat123</div>
-                <div>• <strong>Penjual:</strong> budi@gmail.com / penjual123</div>
-                <div>• <strong>Petugas:</strong> petugas@mail.com / petugas123</div>
-            </div>
         </div>
 
-        <!-- Panel Kanan: Form Login Murni Tanpa Pilihan Role Manual -->
-        <div class="col-lg-6 d-flex align-items-center justify-content-center p-4">
-            <div style="width: 100%; max-width: 400px;">
+        <div class="col-12 col-lg-6 d-flex align-items-center justify-content-center p-4 p-md-5">
+            <div style="width: 100%; max-width: 420px;">
+                <div class="mb-3">
+                    <a th:href="@{/}" class="text-secondary text-decoration-none small d-inline-flex align-items-center gap-1">
+                        <i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Kembali ke Beranda / Home
+                    </a>
+                </div>
                 <h2 class="fw-bold mb-1">Welcome Back</h2>
                 <p class="text-secondary mb-4">Masukkan email dan password akun Jelantara Anda</p>
-                <form th:action="@{/auth/login}" method="post">
+
+                <!-- Alert Cooldown 30 Detik saat salah 5x dalam 1 menit -->
+                <div id="cooldownAlertBox" th:if="${cooldownSeconds != null and cooldownSeconds > 0}"
+                     class="alert alert-danger rounded-4 small fw-semibold mb-3 d-flex align-items-center gap-2">
+                    <i data-lucide="shield-alert" style="width:18px;height:18px;flex-shrink:0;"></i>
+                    <span>Login dikunci sementara (5x gagal/menit). Coba lagi dalam <strong id="cooldownTimerText" th:text="${cooldownSeconds}">30</strong> detik.</span>
+                </div>
+
+                <form th:action="@{/auth/login}" method="post" id="loginForm">
                     <div class="mb-3">
                         <label class="form-label fw-semibold">Email</label>
                         <input type="email" name="email" class="form-control py-2" placeholder="Masukkan email terdaftar" required>
@@ -41,20 +45,103 @@
                         <label class="form-label fw-semibold">Password</label>
                         <input type="password" name="password" class="form-control py-2" placeholder="••••••••" required>
                     </div>
-                    <button type="submit" class="btn-jlt-primary w-100 py-3">LOG IN</button>
+                    <button type="submit" id="btnSubmitLogin" class="btn-jlt-primary w-100 py-3"
+                            th:disabled="${cooldownSeconds != null and cooldownSeconds > 0}">LOG IN</button>
+                </form>
 
-                    <div class="auth-divider"><span>or Log In with</span></div>
-                    <div class="d-flex gap-3 mb-4">
-                        <button type="button" class="btn-jlt-outline w-100">Google</button>
-                        <button type="button" class="btn-jlt-outline w-100">Facebook</button>
+                <div class="auth-divider"><span>atau masuk dengan Google</span></div>
+
+                <!-- Google Identity Services Resmi (Aktif otomatis jika google.client.id diisi di application.properties) -->
+                <div th:if="${googleConfigured}" class="d-flex justify-content-center mb-4">
+                    <div id="g_id_onload"
+                         th:attr="data-client_id=${googleClientId}"
+                         data-context="signin"
+                         data-ux_mode="popup"
+                         data-callback="handleGoogleCredentialResponse"
+                         data-auto_prompt="false">
                     </div>
-                    <p class="text-center small mb-0">Belum punya akun Penjual? <a th:href="@{/register}" class="fw-bold text-dark">Register</a></p>
+                    <div class="g_id_signin" data-type="standard" data-shape="pill" data-theme="outline"
+                         data-text="signin_with" data-size="large" data-width="380"></div>
+                    <form id="googleJwtForm" th:action="@{/auth/google}" method="post" class="d-none">
+                        <input type="hidden" name="credential" id="googleCredentialInput">
+                    </form>
+                </div>
+
+                <!-- Tombol Google Sign-In Fallback (Langsung bisa dicoba di localhost sebelum isi Client ID) -->
+                <div th:if="${!googleConfigured}" class="mb-4">
+                    <button type="button" class="btn-jlt-outline w-100 py-2 d-flex align-items-center justify-content-center gap-2"
+                            data-bs-toggle="modal" data-bs-target="#modalGoogleLogin"
+                            th:disabled="${cooldownSeconds != null and cooldownSeconds > 0}">
+                        <svg width="18" height="18" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.6 20.1H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 8 3l5.7-5.7C34 6 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.6-.4-3.9z"/><path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.7 15.1 19 12 24 12c3.1 0 5.8 1.2 8 3l5.7-5.7C34 6 29.3 4 24 4 16.3 4 9.7 8.3 6.3 14.7z"/><path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/><path fill="#1976D2" d="M43.6 20.1H42V20H24v8h11.3c-.8 2.2-2.2 4.2-4.1 5.6l6.2 5.2C36.9 39.2 44 34 44 24c0-1.3-.1-2.6-.4-3.9z"/></svg>
+                        <span>Masuk dengan Akun Google</span>
+                    </button>
+                </div>
+
+                <p class="text-center small mb-0">Belum punya akun Penjual? <a th:href="@{/register}" class="fw-bold text-dark">Register</a></p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Google Login (Mode Pengembangan Lokal) -->
+    <div class="modal fade" id="modalGoogleLogin" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content rounded-4 border-0 shadow">
+                <div class="modal-header border-bottom">
+                    <h5 class="modal-title fw-bold">Masuk dengan Akun Google</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form th:action="@{/auth/google}" method="post">
+                    <div class="modal-body">
+                        <p class="small text-secondary mb-3">
+                            Masukkan alamat email Google Anda untuk masuk atau mendaftar otomatis ke Jelantara.
+                            <br><span class="text-muted">(Untuk popup OAuth Google resmi, isi <code>google.client.id</code> di <code>application.properties</code>).</span>
+                        </p>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold small">Email Google (@gmail.com) <span class="text-danger">*</span></label>
+                            <input type="email" name="googleEmail" class="form-control" placeholder="nama.anda@gmail.com" required>
+                        </div>
+                        <div class="mb-2">
+                            <label class="form-label fw-semibold small">Nama Lengkap Akun Google</label>
+                            <input type="text" name="googleName" class="form-control" placeholder="Contoh: Budi Santoso">
+                        </div>
+                    </div>
+                    <div class="modal-footer border-top">
+                        <button type="button" class="btn-jlt-outline" data-bs-dismiss="modal">Batal</button>
+                        <button type="submit" class="btn-jlt-primary">Lanjutkan dengan Google</button>
+                    </div>
                 </form>
             </div>
         </div>
     </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://unpkg.com/lucide@latest"></script>
     <script th:src="@{/js/main.js}"></script>
+    <script th:inline="javascript">
+        function handleGoogleCredentialResponse(response) {
+            if (response && response.credential) {
+                document.getElementById('googleCredentialInput').value = response.credential;
+                document.getElementById('googleJwtForm').submit();
+            }
+        }
+        // Hitung mundur cooldown 30 detik secara live
+        let sisaCooldown = /*[[${cooldownSeconds != null ? cooldownSeconds : 0}]]*/ 0;
+        if (sisaCooldown > 0) {
+            const timerEl = document.getElementById('cooldownTimerText');
+            const boxEl = document.getElementById('cooldownAlertBox');
+            const btnLogin = document.getElementById('btnSubmitLogin');
+            const interval = setInterval(() => {
+                sisaCooldown--;
+                if (sisaCooldown <= 0) {
+                    clearInterval(interval);
+                    if (boxEl) boxEl.classList.add('d-none');
+                    if (btnLogin) btnLogin.disabled = false;
+                } else if (timerEl) {
+                    timerEl.innerText = sisaCooldown;
+                }
+            }, 1000);
+        }
+    </script>
 </body>
 </html>

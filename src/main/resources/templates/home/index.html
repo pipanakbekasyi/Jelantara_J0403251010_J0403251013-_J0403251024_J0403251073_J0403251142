@@ -8,6 +8,26 @@
     <link rel="stylesheet" th:href="@{/css/global.css}">
 </head>
 <body th:attr="data-flash-success=${flashSuccess},data-flash-error=${flashError}">
+    <!-- Skeleton Shimmer Loading Overlay (Auto-dismiss & Non-blocking) -->
+    <div id="jltSkeletonOverlay" class="jlt-skeleton-overlay">
+        <div class="container" style="max-width: 720px;">
+            <div class="jlt-card p-4">
+                <div class="skeleton-box skeleton-line title mb-3"></div>
+                <div class="skeleton-box skeleton-line short mb-4"></div>
+                <div class="row g-3">
+                    <div class="col-6"><div class="skeleton-box" style="height: 110px;"></div></div>
+                    <div class="col-6"><div class="skeleton-box" style="height: 110px;"></div></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        (function(){
+            var el = document.getElementById('jltSkeletonOverlay');
+            if(el){ setTimeout(function(){ el.style.opacity='0'; setTimeout(function(){ if(el && el.parentNode) el.parentNode.removeChild(el); }, 220); }, 250); }
+        })();
+    </script>
+
 
     <!-- Menyisipkan Navbar Modular -->
     <div th:replace="~{fragments/navbar :: main-navbar('home')}"></div>
@@ -32,12 +52,13 @@
             </div>
             <div class="col-lg-5">
                 <div class="jlt-card" style="background-color: #FFFAE5; border-color: #FFE675;">
+                    <img src="/images/hero-jelantara.jpg" alt="Ekosistem Jelantara" class="hero-illustration-img mb-3">
                     <div class="d-flex justify-content-between align-items-center mb-3">
                         <span class="fw-bold">Harga Beli Pusat Hari Ini</span>
                         <span class="badge-jlt-success">Update Realtime</span>
                     </div>
                     <h2 class="fw-bold mb-1" th:text="'Rp ' + ${#numbers.formatDecimal(hargaAcuan, 0, 'POINT', 0, 'COMMA')} + ' / Liter'">Rp 6.000 / Liter</h2>
-                    <p class="small text-secondary mb-3">+10 Poin Reward otomatis setiap liter minyak terverifikasi (Minimal 15 Liter)</p>
+                    <p class="small text-secondary mb-3">+15 Poin Reward setiap kelipatan 15 Liter minyak terverifikasi (Minimal 15 Liter)</p>
                     <hr>
                     <!-- Hanya tampilkan saldo poin apabila sudah login sebagai PENJUAL -->
                     <div th:if="${penjual != null}" class="d-flex justify-content-between small fw-semibold">

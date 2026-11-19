@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="id" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Riwayat Penugasan - Kurir Lapangan Jelantara</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" th:href="@{/css/global.css}">
+    <link rel="stylesheet" th:href="@{/css/petugas.css}">
+    <link rel="stylesheet" th:href="@{/css/penjual.css}">
+</head>
+<body th:attr="data-flash-success=${flashSuccess},data-flash-error=${flashError}">
+
+    <div class="app-layout flex-column flex-lg-row">
+        <div th:replace="~{fragments/sidebar-nav :: petugas-sidebar('riwayat', ${petugas})}"></div>
+
+        <main class="app-main-content p-3 p-md-4 p-lg-5">
+            <div class="capacity-meter-card mb-4 d-flex flex-wrap justify-content-between align-items-center gap-3">
+                <div>
+                    <span class="badge-jlt-success">Arsip Tugas Kurir</span>
+                    <h3 class="fw-bold mt-1 mb-0">Riwayat Penugasan (Jual Minyak &amp; Redeem)</h3>
+                </div>
+                <div class="d-flex flex-wrap gap-2">
+                    <a th:href="@{/petugas/transaksi}" class="btn-jlt-outline btn-sm">Tugas Jual Minyak</a>
+                    <a th:href="@{/petugas/redeem}" class="btn-jlt-outline btn-sm">Tugas Redeem</a>
+                </div>
+            </div>
+
+            <div class="jlt-card">
+                <div class="d-flex flex-wrap justify-content-between align-items-center mb-3 gap-2">
+                    <div>
+                        <h5 class="fw-bold mb-1">Filter &amp; Daftar Riwayat Penugasan</h5>
+                        <p class="small text-secondary mb-0">Saring riwayat tugas berdasarkan jenis penugasan (Jual Minyak atau Redeem Poin) dan status penugasan.</p>
+                    </div>
+                    <span class="badge-jlt-success" th:text="'Total: ' + ${#lists.size(riwayatPenugasanList)} + ' Tugas'">0 Tugas</span>
+                </div>
+
+                <!-- Filter Jenis Penugasan, Filter Status Penugasan, dan Pencarian -->
+                <div class="row g-2 mb-4">
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold mb-1">Filter Jenis Penugasan</label>
+                        <select id="filterJenisTugasPtg" onchange="filterRiwayatPetugas()" class="form-select jlt-select">
+                            <option value="SEMUA">Semua Jenis Penugasan</option>
+                            <option value="JUAL_MINYAK">Transaksi Jual Minyak</option>
+                            <option value="REDEEM">Pengantaran Redeem Poin</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold mb-1">Filter Status Penugasan</label>
+                        <select id="filterStatusTugasPtg" onchange="filterRiwayatPetugas()" class="form-select jlt-select">
+                            <option value="SEMUA">Semua Status Penugasan</option>
+                            <option value="Penugasan Kurir">Penugasan Kurir</option>
+                            <option value="Petugas Ditugaskan">Petugas Ditugaskan</option>
+                            <option value="Penjemputan">Penjemputan</option>
+                            <option value="Petugas Dalam Perjalanan">Petugas Dalam Perjalanan</option>
+                            <option value="Diverifikasi Petugas">Diverifikasi Petugas</option>
+                            <option value="Selesai">Selesai</option>
+                            <option value="Dibatalkan">Dibatalkan</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label small fw-semibold mb-1">Cari Resi / Penjual / Alamat</label>
+                        <input type="text" id="filterKeywordTugasPtg" oninput="filterRiwayatPetugas()"
+                               class="form-control" style="min-height:45px;border-radius:12px;"
+                               placeholder="Ketik kode resi, nama penjual, alamat...">
+                    </div>
+                </div>
+
+                <div id="pesanKosongRiwayatPtg" class="text-center py-5 rounded-4 d-none" style="background:#FFFAE5;border:1px dashed #FFE675;">
+                    <i data-lucide="search-x" style="width:36px;height:36px;color:#B87B0A;" class="mb-2"></i>
+                    <h6 class="fw-bold mb-1">Tidak Ada Riwayat Penugasan yang Cocok</h6>
+                    <p class="small text-secondary mb-0">Coba ubah filter jenis atau status penugasan di atas.</p>
+                </div>
+
+                <div th:if="${#lists.isEmpty(riwayatPenugasanList)}" class="text-center py-5 rounded-4" style="background:#FFFAE5;border:1px dashed #FFE675;">
+                    <i data-lucide="clipboard-list" style="width:36px;height:36px;color:#B87B0A;" class="mb-2"></i>
+                    <h6 class="fw-bold mb-1">Belum Ada Riwayat Penugasan</h6>
+                    <p class="small text-secondary mb-0">Seluruh tugas penjemputan minyak dan pengantaran reward Anda akan terekam di halaman ini.</p>
+                </div>
+
+                <div class="d-flex flex-column gap-3" id="listRiwayatPenugasanPtg" th:if="${!#lists.isEmpty(riwayatPenugasanList)}">
+                    <div class="jlt-card p-3 item-riwayat-ptg-row" th:each="item : ${riwayatPenugasanList}"
+                         th:attr="data-id=${item.id},data-jenis=${item.jenis},data-resi=${item.kodeResi},data-tanggal=${item.tanggal},data-penjual=${item.namaPenjual},data-petugas=${item.namaPetugas},data-item=${item.detailItem},data-total=${item.totalBayar},data-poin=${item.poin},data-alamat=${item.alamat},data-catatan=${item.catatan},data-status=${item.status},data-ketbukti=${item.keteranganBukti},data-foto=${item.foto}">
+                        <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                            <div class="d-flex flex-wrap align-items-center gap-2">
+                                <span class="badge" style="background:#FFF3B8;color:#926008;border:1px solid #FFE675;" th:text="${item.jenisLabel}">Jual Minyak</span>
+                                <strong class="fs-5" th:text="${item.kodeResi}">JLT-000001</strong>
+                                <span th:class="${item.status == 'Dibatalkan' ? 'badge-jlt-error' : (item.status == 'Selesai' ? 'badge-jlt-success' : 'badge-jlt-warning')}"
+                                      th:text="${item.status}">Selesai</span>
+                            </div>
+                            <small class="text-secondary fw-semibold" th:text="${item.tanggal}">2026-11-19</small>
+                        </div>
+                        <div class="row small text-secondary g-2">
+                            <div class="col-md-4"><strong>Penjual:</strong> <span class="text-dark fw-semibold" th:text="${item.namaPenjual}">Budi Santoso</span></div>
+                            <div class="col-md-4"><strong>Detail Tugas:</strong> <span class="text-dark" th:text="${item.detailItem}">15 Liter</span></div>
+                            <div class="col-md-4" th:if="${item.totalBayar != null}">
+                                <strong>Nominal:</strong> <span class="fw-bold" style="color:#926008;" th:text="'Rp ' + ${#numbers.formatDecimal(item.totalBayar, 0, 'POINT', 0, 'COMMA')}">Rp 90.000</span>
+                            </div>
+                            <div class="col-md-4" th:if="${item.totalBayar == null}">
+                                <strong>Poin Reward:</strong> <span class="fw-bold" style="color:#926008;" th:text="${#numbers.formatDecimal(T(java.lang.Math).abs(item.poin), 0, 'POINT', 0, 'COMMA')} + ' Poin'">150 Poin</span>
+                            </div>
+                            <div class="col-12 text-truncate-1"><strong>Alamat:</strong> <span th:text="${item.alamat}">Jl. Melati No. 10</span></div>
+                            <div class="col-12 text-dark text-truncate-1"><strong>Update Terakhir:</strong> <span th:text="${item.keteranganBukti != null ? item.keteranganBukti : '-'}">-</span></div>
+                        </div>
+                        <div class="mobile-action-stack d-flex flex-wrap justify-content-end gap-2 mt-3 pt-2 border-top">
+                            <button type="button" class="btn-jlt-outline btn-sm px-3"
+                                    onclick="bukaDetailTransaksiUnified(this.closest('.item-riwayat-ptg-row'))">
+                                <i data-lucide="history" style="width:14px;height:14px;"></i> Detail &amp; Log Riwayat
+                            </button>
+                            <a th:href="@{/transaksi/bukti/{id}(id=${item.id},jenis=${item.jenis})}" class="btn-jlt-primary btn-sm px-3">
+                                <i data-lucide="file-down" style="width:14px;height:14px;"></i> Download Bukti PDF
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Side Panel Detail + Log Riwayat Update Append-Only -->
+    <div id="sidePanelBackdrop" class="side-panel-backdrop" onclick="tutupDetailTransaksi()"></div>
+    <div id="sidePanelDrawer" class="side-panel-drawer">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h5 class="fw-bold mb-0">Detail &amp; Riwayat Update</h5>
+            <button type="button" class="btn-close-jlt" onclick="tutupDetailTransaksi()">✕</button>
+        </div>
+        <div class="jlt-card mb-3" style="background:#FFFAE5;border-color:#FFE675;">
+            <p class="mb-2"><strong>Jenis Penugasan:</strong> <span id="spJenis">-</span></p>
+            <p class="mb-2"><strong>Nomor Resi:</strong> <span id="spResi">-</span></p>
+            <p class="mb-2"><strong>Tanggal:</strong> <span id="spTanggal">-</span></p>
+            <p class="mb-2"><strong>Nama Penjual:</strong> <span id="spPenjual">-</span></p>
+            <p class="mb-2"><strong>Nama Petugas:</strong> <span id="spPetugas">-</span></p>
+            <p class="mb-2"><strong>Alamat:</strong> <span id="spLokasi" class="text-break">-</span></p>
+            <p class="mb-2"><strong>Volume / Produk:</strong> <span id="spLiter">-</span></p>
+            <p class="mb-2"><strong>Total Bayar / Poin:</strong> <span id="spTotal" class="fw-bold">-</span></p>
+            <p class="mb-2"><strong>Status Terkini:</strong> <span id="spStatus" class="fw-bold">-</span></p>
+            <hr>
+            <p class="fw-bold mb-2">Riwayat Log Update (Tersimpan Utuh):</p>
+            <div id="spRiwayatLogContainer" class="small">Memuat riwayat update...</div>
+            <div class="d-none"><span id="spKetBukti"></span><span id="spNoFoto"></span><img id="spFotoBukti" src=""></div>
+        </div>
+        <a id="spDownloadPdfBtn" href="#" class="btn-jlt-primary w-100">
+            <i data-lucide="file-down" style="width:16px;height:16px;"></i> Download Template Bukti Pembayaran (PDF)
+        </a>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script th:src="@{/js/main.js}"></script>
+    <script>
+        function filterRiwayatPetugas() {
+            const jenis = document.getElementById("filterJenisTugasPtg")?.value || "SEMUA";
+            const status = document.getElementById("filterStatusTugasPtg")?.value || "SEMUA";
+            const kw = (document.getElementById("filterKeywordTugasPtg")?.value || "").toLowerCase().trim();
+            const rows = document.querySelectorAll(".item-riwayat-ptg-row");
+            let visible = 0;
+
+            rows.forEach(row => {
+                const rJenis = row.getAttribute("data-jenis") || "";
+                const rStatus = row.getAttribute("data-status") || "";
+                const text = (
+                    (row.getAttribute("data-resi") || "") + " " +
+                    (row.getAttribute("data-penjual") || "") + " " +
+                    (row.getAttribute("data-alamat") || "") + " " +
+                    (row.getAttribute("data-item") || "")
+                ).toLowerCase();
+
+                const okJenis = (jenis === "SEMUA" || rJenis === jenis);
+                const okStatus = (status === "SEMUA" || rStatus.toLowerCase() === status.toLowerCase());
+                const okKw = (kw === "" || text.includes(kw));
+
+                if (okJenis && okStatus && okKw) {
+                    row.classList.remove("d-none");
+                    visible++;
+                } else {
+                    row.classList.add("d-none");
+                }
+            });
+
+            const emptyEl = document.getElementById("pesanKosongRiwayatPtg");
+            if (emptyEl) emptyEl.classList.toggle("d-none", visible > 0 || rows.length === 0);
+        }
+    </script>
+</body>
+</html>

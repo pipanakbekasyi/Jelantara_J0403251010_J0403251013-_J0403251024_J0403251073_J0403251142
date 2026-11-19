@@ -9,16 +9,40 @@
     <link rel="stylesheet" th:href="@{/css/auth.css}">
 </head>
 <body th:attr="data-flash-success=${flashSuccess},data-flash-error=${flashError}">
-    <div class="row g-0 auth-split-wrapper">
-        <div class="col-lg-6 auth-mascot-panel">
-            <div class="mascot-avatar-3d mb-4">
-                <i data-lucide="sparkles" style="width:76px;height:76px;color:#18181B;"></i>
+    <!-- Skeleton Shimmer Loading Overlay (Auto-dismiss & Non-blocking) -->
+    <div id="jltSkeletonOverlay" class="jlt-skeleton-overlay">
+        <div class="container" style="max-width: 720px;">
+            <div class="jlt-card p-4">
+                <div class="skeleton-box skeleton-line title mb-3"></div>
+                <div class="skeleton-box skeleton-line short mb-4"></div>
+                <div class="row g-3">
+                    <div class="col-6"><div class="skeleton-box" style="height: 110px;"></div></div>
+                    <div class="col-6"><div class="skeleton-box" style="height: 110px;"></div></div>
+                </div>
             </div>
+        </div>
+    </div>
+    <script>
+        (function(){
+            var el = document.getElementById('jltSkeletonOverlay');
+            if(el){ setTimeout(function(){ el.style.opacity='0'; setTimeout(function(){ if(el && el.parentNode) el.parentNode.removeChild(el); }, 220); }, 250); }
+        })();
+    </script>
+
+    <div class="row g-0 auth-split-wrapper">
+        <div class="col-lg-6 auth-mascot-panel d-none d-lg-flex">
+            <img src="/images/mascot-register.jpg" alt="Registrasi Jelantara" class="auth-mascot-img mb-4">
             <h2 class="fw-bold text-center">Bergabung Bersama Jelantara</h2>
             <p class="text-secondary text-center" style="max-width: 380px;">Dapatkan poin reward dari setiap liter minyak jelantah yang Anda setorkan.</p>
         </div>
-        <div class="col-lg-6 d-flex align-items-center justify-content-center p-4">
+        <div class="col-12 col-lg-6 d-flex align-items-center justify-content-center p-4 p-md-5">
             <div style="width: 100%; max-width: 400px;">
+                
+                    <div class="mb-3">
+                        <a th:href="@{/}" class="text-secondary text-decoration-none small d-inline-flex align-items-center gap-1">
+                            <i data-lucide="arrow-left" style="width:14px;height:14px;"></i> Kembali ke Beranda / Home
+                        </a>
+                    </div>
                 <h2 class="fw-bold mb-3">Create Account</h2>
                 <form th:action="@{/auth/register}" method="post">
                     <div class="mb-2">
