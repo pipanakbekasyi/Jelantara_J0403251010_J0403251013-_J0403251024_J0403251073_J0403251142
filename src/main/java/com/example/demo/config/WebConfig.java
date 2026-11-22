@@ -40,6 +40,32 @@ public class WebConfig implements WebMvcConfigurer {
                 response.setDateHeader("Expires", 0);
 
                 String uri = request.getRequestURI();
+                String method = request.getMethod();
+
+                // Proteksi REST JSON API (/api/**)
+                if (uri.startsWith("/api/")) {
+                    boolean publik = uri.equals("/api/auth/login")
+                            || ("GET".equals(method) && (uri.equals("/api/overview") || uri.equals("/api/harga-minyak")
+                                || uri.equals("/api/stok") || uri.equals("/api/produk")));
+                    if (publik) return true;
+
+                    HttpSession apiSession = request.getSession(false);
+                    Object role = apiSession != null ? apiSession.getAttribute("userRole") : null;
+                    if (apiSession == null || apiSession.getAttribute("userId") == null || role == null) {
+                        kirimJsonError(response, HttpServletResponse.SC_UNAUTHORIZED, "Silakan login terlebih dahulu.");
+                        return false;
+                    }
+                    // Ubah/hapus produk dan lihat data petugas khusus PUSAT
+                    boolean khususPusat = (uri.startsWith("/api/produk") && !"GET".equals(method))
+                            || uri.startsWith("/api/petugas")
+                            || ("GET".equals(method) && (uri.equals("/api/transaksi") || uri.equals("/api/redeem")));
+                    if (khususPusat && !"PUSAT".equals(role)) {
+                        kirimJsonError(response, HttpServletResponse.SC_FORBIDDEN, "Akses ditolak: khusus akun Pusat.");
+                        return false;
+                    }
+                    // Penjual hanya boleh membuat transaksi/redeem atas namanya sendiri (dicek di ApiController)
+                    return true;
+                }
                 if (uri.startsWith("/dashboard") || uri.startsWith("/check-it-now") || uri.startsWith("/penjual") || uri.startsWith("/petugas") || uri.startsWith("/pusat") || uri.startsWith("/transaksi/bukti")) {
                     HttpSession session = request.getSession(false);
                     if (session == null || session.getAttribute("userId") == null || session.getAttribute("userRole") == null) {
@@ -50,5 +76,11 @@ public class WebConfig implements WebMvcConfigurer {
                 return true;
             }
         });
+    }
+
+    private static void kirimJsonError(HttpServletResponse response, int status, String pesan) throws java.io.IOException {
+        response.setStatus(status);
+        response.setContentType("application/json;charset=UTF-8");
+        response.getWriter().write("{\"status\":\"error\",\"message\":\"" + pesan + "\"}");
     }
 }
