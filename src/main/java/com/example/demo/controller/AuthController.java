@@ -9,6 +9,7 @@ package com.example.demo.controller;
 // =========================================================================
 import com.example.demo.entity.*;
 import com.example.demo.repository.PenjualRepository;
+import com.example.demo.service.InputValidator;
 import com.example.demo.service.JelantaraService;
 import com.example.demo.service.LoginRateLimiterService;
 import com.example.demo.service.PasswordEncoderService;
@@ -106,6 +107,12 @@ public class AuthController {
             return "redirect:/login";
         }
 
+        try {
+            email = InputValidator.validateEmail(email);
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("flashError", e.getMessage());
+            return "redirect:/login";
+        }
         if (password == null || password.isBlank()) {
             ra.addFlashAttribute("flashError", "Password wajib diisi!");
             return "redirect:/login";
@@ -163,7 +170,7 @@ public class AuthController {
                 picture = json.has("picture") ? json.path("picture").asText() : null;
             } else if (googleEmail != null && !googleEmail.isBlank()) {
                 // Mode simulasi/lokal apabila Google Client ID belum diisi di application.properties
-                email = googleEmail.trim().toLowerCase();
+                email = InputValidator.validateEmail(googleEmail);
                 nama = (googleName != null && !googleName.isBlank()) ? googleName.trim() : email.split("@")[0];
                 googleId = "google-local-" + Math.abs(email.hashCode());
             } else {
@@ -222,10 +229,16 @@ public class AuthController {
                                   @RequestParam(required = false) String alamat,
                                   HttpSession session, RedirectAttributes ra) {
         try {
+            String cleanNama = InputValidator.validateNotBlank(namaPenjual, "Nama lengkap");
+            String cleanEmail = InputValidator.validateEmail(email);
+            String cleanHp = InputValidator.validatePhone(noHp, "Nomor HP / WhatsApp");
+            if (password == null || password.length() < 6) {
+                throw new IllegalArgumentException("Password wajib diisi minimal 6 karakter.");
+            }
             Penjual baru = new Penjual();
-            baru.setNamaPenjual(namaPenjual);
-            baru.setEmail(email.trim());
-            baru.setNoHp(noHp.trim());
+            baru.setNamaPenjual(cleanNama);
+            baru.setEmail(cleanEmail);
+            baru.setNoHp(cleanHp);
             baru.setPassword(passwordEncoder.encodePassword(password));
             baru.setAlamat(alamat != null ? alamat : "");
             baru.setAuthProvider("LOCAL");
@@ -243,6 +256,9 @@ public class AuthController {
 
             ra.addFlashAttribute("flashSuccess", "Registrasi berhasil! Silakan lengkapi kategori, rekening/e-wallet, dan alamat penjemputan Anda.");
             return "redirect:/auth/lengkapi-profil-penjual";
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("flashError", e.getMessage());
+            return "redirect:/register";
         } catch (Exception e) {
             ra.addFlashAttribute("flashError", "Gagal mendaftar: Email atau Nomor HP sudah terdaftar.");
             return "redirect:/register";
@@ -269,20 +285,30 @@ public class AuthController {
         String role = (String) session.getAttribute("userRole");
         if (!"PENJUAL".equalsIgnoreCase(role)) return "redirect:/login";
         Long userId = (Long) session.getAttribute("userId");
-        Penjual p = service.getPenjualAktif(userId);
-        if (p != null) {
-            p.setKategoriPenjual(kategoriPenjual);
-            p.setMetodePembayaran(metodePembayaran);
-            p.setNamaPenyedia(namaPenyedia);
-            p.setNoRekening(noRekening.trim());
-            p.setAlamat(alamat.trim());
-            if (noHp != null && !noHp.isBlank()) {
-                p.setNoHp(noHp.trim());
+        try {
+            Penjual p = service.getPenjualAktif(userId);
+            if (p != null) {
+                String cleanRek = InputValidator.validateRekening(noRekening);
+                String cleanAlamat = InputValidator.validateNotBlank(alamat, "Alamat lengkap");
+                p.setKategoriPenjual(kategoriPenjual);
+                p.setMetodePembayaran(metodePembayaran);
+                p.setNamaPenyedia(namaPenyedia);
+                p.setNoRekening(cleanRek);
+                p.setAlamat(cleanAlamat);
+                if (noHp != null && !noHp.isBlank()) {
+                    p.setNoHp(InputValidator.validatePhone(noHp, "Nomor HP / WhatsApp"));
+                }
+                penjualRepo.save(p);
             }
-            penjualRepo.save(p);
+            ra.addFlashAttribute("flashSuccess", "Profil & rekening pencairan berhasil disimpan! Kini Anda dapat mulai bertransaksi.");
+            return "redirect:/check-it-now";
+        } catch (IllegalArgumentException e) {
+            ra.addFlashAttribute("flashError", e.getMessage());
+            return "redirect:/auth/lengkapi-profil-penjual";
+        } catch (Exception e) {
+            ra.addFlashAttribute("flashError", "Gagal menyimpan profil: Nomor HP mungkin sudah terdaftar pada akun lain.");
+            return "redirect:/auth/lengkapi-profil-penjual";
         }
-        ra.addFlashAttribute("flashSuccess", "Profil & rekening pencairan berhasil disimpan! Kini Anda dapat mulai bertransaksi.");
-        return "redirect:/check-it-now";
     }
 
     // API JSON untuk mengambil seluruh baris riwayat update transaksi (Append-Only Audit Log)

@@ -72,8 +72,12 @@ public class PusatController {
     @PostMapping("/pusat/update-harga")
     public String updateHargaMinyak(@RequestParam Double hargaBaru, HttpSession session, RedirectAttributes ra) {
         if (!isPusat(session)) return "redirect:/login";
-        service.updateHargaMinyakOlehPusat(hargaBaru);
-        ra.addFlashAttribute("flashSuccess", "Harga acuan minyak berhasil diperbarui menjadi Rp " + String.format("%,.0f", hargaBaru) + " / Liter.");
+        try {
+            service.updateHargaMinyakOlehPusat(hargaBaru);
+            ra.addFlashAttribute("flashSuccess", "Harga acuan minyak berhasil diperbarui menjadi Rp " + String.format("%,.0f", hargaBaru) + " / Liter.");
+        } catch (Exception e) {
+            ra.addFlashAttribute("flashError", e.getMessage());
+        }
         return "redirect:/pusat?menu=overview";
     }
 
@@ -164,16 +168,24 @@ public class PusatController {
                              @RequestParam(value = "gambarFile", required = false) MultipartFile gambarFile,
                              HttpSession session, RedirectAttributes ra) {
         if (!isPusat(session)) return "redirect:/login";
-        service.simpanProdukOlahan(idProduk, namaProduk, deskripsi, hargaPoin, stok, gambarFile);
-        ra.addFlashAttribute("flashSuccess", "Produk '" + namaProduk + "' berhasil disimpan ke katalog.");
+        try {
+            service.simpanProdukOlahan(idProduk, namaProduk, deskripsi, hargaPoin, stok, gambarFile);
+            ra.addFlashAttribute("flashSuccess", "Produk '" + namaProduk + "' berhasil disimpan ke katalog.");
+        } catch (Exception e) {
+            ra.addFlashAttribute("flashError", "Gagal menyimpan produk: " + e.getMessage());
+        }
         return "redirect:/pusat?menu=katalog";
     }
 
     @PostMapping("/pusat/produk/delete")
     public String deleteProduk(@RequestParam Long idProduk, HttpSession session, RedirectAttributes ra) {
         if (!isPusat(session)) return "redirect:/login";
-        service.hapusProdukOlahan(idProduk);
-        ra.addFlashAttribute("flashSuccess", "Produk olahan berhasil dihapus dari katalog.");
+        try {
+            service.hapusProdukOlahan(idProduk);
+            ra.addFlashAttribute("flashSuccess", "Produk olahan berhasil dihapus dari katalog.");
+        } catch (Exception e) {
+            ra.addFlashAttribute("flashError", "Gagal menghapus produk: " + e.getMessage());
+        }
         return "redirect:/pusat?menu=katalog";
     }
 

@@ -1,6 +1,7 @@
 package com.example.demo.controller;
 
 import com.example.demo.entity.*;
+import com.example.demo.service.InputValidator;
 import com.example.demo.service.JelantaraService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -76,8 +77,10 @@ public class ApiController {
                     "status", "success",
                     "message", "Produk olahan berhasil disimpan."
             ));
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", "Format angka tidak valid! Pastikan field numerik hanya berisi angka."));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", e.getMessage() != null ? e.getMessage() : "Input tidak valid."));
         }
     }
 
@@ -86,8 +89,10 @@ public class ApiController {
         try {
             service.hapusProdukOlahan(id);
             return ResponseEntity.ok(Map.of("status", "success", "message", "Produk ID " + id + " berhasil dihapus."));
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", "Format angka tidak valid! Pastikan field numerik hanya berisi angka."));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", e.getMessage() != null ? e.getMessage() : "Input tidak valid."));
         }
     }
 
@@ -108,9 +113,15 @@ public class ApiController {
     @PostMapping("/transaksi")
     public ResponseEntity<Map<String, Object>> buatTransaksiPickup(@RequestBody Map<String, Object> body) {
         try {
+            if (body.get("penjualId") == null || body.get("jumlahLiter") == null || body.get("lokasi") == null) {
+                return ResponseEntity.badRequest().body(Map.of("status", "error", "message", "Field penjualId, jumlahLiter, dan lokasi wajib diisi."));
+            }
+            if (body.get("penjualId") == null || body.get("alamatPengantaran") == null) {
+                return ResponseEntity.badRequest().body(Map.of("status", "error", "message", "Field penjualId dan alamatPengantaran wajib diisi."));
+            }
             Long penjualId = Long.valueOf(body.get("penjualId").toString());
             Double jumlahLiter = Double.valueOf(body.get("jumlahLiter").toString());
-            String lokasi = body.get("lokasi").toString();
+            String lokasi = InputValidator.validateNotBlank(body.get("lokasi").toString(), "Lokasi penjemputan");
             String catatan = body.get("catatan") != null ? body.get("catatan").toString() : "";
             String metodePembayaran = body.get("metodePembayaran") != null ? body.get("metodePembayaran").toString() : "Bank";
             String namaPenyedia = body.get("namaPenyedia") != null ? body.get("namaPenyedia").toString() : "BCA";
@@ -125,8 +136,10 @@ public class ApiController {
             res.put("kodeResi", baru.getKodeResi());
             res.put("data", baru);
             return ResponseEntity.status(HttpStatus.CREATED).body(res);
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", "Format angka tidak valid! Pastikan field numerik hanya berisi angka."));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", e.getMessage() != null ? e.getMessage() : "Input tidak valid."));
         }
     }
 
@@ -173,8 +186,10 @@ public class ApiController {
             res.put("kodeResi", rdm.getKodeResi());
             res.put("data", toPenukaranDto(rdm));
             return ResponseEntity.status(HttpStatus.CREATED).body(res);
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", "Format angka tidak valid! Pastikan field numerik hanya berisi angka."));
         } catch (Exception e) {
-            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", e.getMessage()));
+            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", e.getMessage() != null ? e.getMessage() : "Input tidak valid."));
         }
     }
 
@@ -202,8 +217,13 @@ public class ApiController {
     public ResponseEntity<Map<String, Object>> apiLogin(@RequestBody Map<String, String> body) {
         String email = body.get("email");
         String password = body.get("password");
-        if (email == null || email.isBlank() || password == null || password.isBlank()) {
-            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", "Email dan password wajib diisi."));
+        try {
+            email = InputValidator.validateEmail(email);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", e.getMessage()));
+        }
+        if (password == null || password.isBlank()) {
+            return ResponseEntity.badRequest().body(Map.of("status", "error", "message", "Password wajib diisi."));
         }
         Optional<JelantaraService.AuthSession> opt = service.authenticateUser(email, password);
         if (opt.isEmpty()) {

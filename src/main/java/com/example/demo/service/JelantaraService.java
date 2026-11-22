@@ -332,11 +332,10 @@ public class JelantaraService {
 
     @Transactional
     public void updateHargaMinyakOlehPusat(Double hargaBaru) {
-        if (hargaBaru != null && hargaBaru > 0) {
-            this.hargaMinyakBerlaku = hargaBaru;
-            Pusat pusatAktif = pusatRepo.findAll().isEmpty() ? null : pusatRepo.findAll().get(0);
-            hargaMinyakRepo.save(new HargaMinyak(hargaBaru, LocalDateTime.now(), pusatAktif));
-        }
+        InputValidator.validateMinDouble(hargaBaru, 100.0, "Harga minyak per liter");
+        this.hargaMinyakBerlaku = hargaBaru;
+        Pusat pusatAktif = pusatRepo.findAll().isEmpty() ? null : pusatRepo.findAll().get(0);
+        hargaMinyakRepo.save(new HargaMinyak(hargaBaru, LocalDateTime.now(), pusatAktif));
     }
 
     // Melengkapi nama penjual dan nama petugas pada setiap objek Penjualan
@@ -452,6 +451,8 @@ public class JelantaraService {
         if (jumlahLiter == null || jumlahLiter < 15.0) {
             throw new IllegalArgumentException("Minimal transaksi penyetoran minyak jelantah adalah 15 Liter!");
         }
+        lokasi = InputValidator.validateNotBlank(lokasi, "Lokasi penjemputan");
+        noRekeningTujuan = InputValidator.validateRekening(noRekeningTujuan);
         StokMinyak stok = getStokTerbaru();
         if (stok.getJumlahUpdate() >= 0.8 * stok.getBatasStok()) {
             throw new IllegalStateException("Transaksi ditolak! Kapasitas gudang sudah mencapai batas peringatan 80% (" + stok.getJumlahUpdate() + " L / " + stok.getBatasStok() + " L).");
@@ -655,7 +656,8 @@ public class JelantaraService {
 
         for (int i = 0; i < produkIdList.size(); i++) {
             Long pId = produkIdList.get(i);
-            int q = (qtyList != null && i < qtyList.size() && qtyList.get(i) != null) ? qtyList.get(i) : 1;
+            Integer rawQ = (qtyList != null && i < qtyList.size()) ? qtyList.get(i) : null;
+            int q = InputValidator.validateMinInt(rawQ != null ? rawQ : 1, 1, "Jumlah unit (Qty) produk");
             ProdukOlahan produk = produkRepo.findById(pId)
                     .orElseThrow(() -> new IllegalArgumentException("Produk ID " + pId + " tidak ditemukan."));
             if (produk.getStok() < q) {
@@ -678,7 +680,8 @@ public class JelantaraService {
 
         for (int i = 0; i < produkIdList.size(); i++) {
             Long pId = produkIdList.get(i);
-            int q = (qtyList != null && i < qtyList.size() && qtyList.get(i) != null) ? qtyList.get(i) : 1;
+            Integer rawQ = (qtyList != null && i < qtyList.size()) ? qtyList.get(i) : null;
+            int q = InputValidator.validateMinInt(rawQ != null ? rawQ : 1, 1, "Jumlah unit (Qty) produk");
             ProdukOlahan p = produkRepo.findById(pId).get();
             p.setStok(p.getStok() - q);
             produkRepo.save(p);
@@ -700,7 +703,8 @@ public class JelantaraService {
 
         for (int i = 0; i < produkIdList.size(); i++) {
             Long pId = produkIdList.get(i);
-            int q = (qtyList != null && i < qtyList.size() && qtyList.get(i) != null) ? qtyList.get(i) : 1;
+            Integer rawQ = (qtyList != null && i < qtyList.size()) ? qtyList.get(i) : null;
+            int q = InputValidator.validateMinInt(rawQ != null ? rawQ : 1, 1, "Jumlah unit (Qty) produk");
             ProdukOlahan p = produkRepo.findById(pId).get();
             DetailPenukaranPoin det = new DetailPenukaranPoin();
             det.setPenukaranPoin(savedRdm);
@@ -971,6 +975,9 @@ public class JelantaraService {
     // Menyimpan produk olahan dengan dukungan upload file gambar
     @Transactional
     public void simpanProdukOlahan(Long idProduk, String nama, String deskripsi, Double hargaPoin, Integer stok, MultipartFile gambarFile) {
+        nama = InputValidator.validateNotBlank(nama, "Nama produk");
+        InputValidator.validateMinDouble(hargaPoin, 1.0, "Harga poin produk");
+        InputValidator.validateMinInt(stok, 0, "Stok produk");
         ProdukOlahan p = (idProduk != null) ? produkRepo.findById(idProduk).orElse(new ProdukOlahan()) : new ProdukOlahan();
         p.setNamaProduk(nama);
         p.setDeskripsi(deskripsi);
@@ -1070,14 +1077,20 @@ public class JelantaraService {
                 ? petugasRepo.findById(idPetugas).orElse(new Petugas())
                 : new Petugas();
 
-        ptg.setNamaPetugas(namaPetugas);
-        ptg.setEmail(email.trim());
-        if (password != null && !password.isBlank()) {
-            ptg.setPassword(password);
-        } else if (ptg.getPassword() == null || ptg.getPassword().isBlank()) {
-            ptg.setPassword("petugas123");
+        String cleanNama = InputValidator.validateNotBlank(namaPetugas, "Nama petugas");
+        String cleanEmail = InputValidator.validateEmail(email);
+        String cleanTelp = InputValidator.validatePhone(noTelp, "Nomor telepon petugas");
+        if (kapasitasMaksimal != null) {
+            InputValidator.validateMinDouble(kapasitasMaksimal, 15.0, "Kapasitas maksimal kurir");
         }
-        ptg.setNoTelp(noTelp.trim());
+        ptg.setNamaPetugas(cleanNama);
+        ptg.setEmail(cleanEmail);
+        if (password != null && !password.isBlank()) {
+            ptg.setPassword(passwordEncoder.encodePassword(password));
+        } else if (ptg.getPassword() == null || ptg.getPassword().isBlank()) {
+            ptg.setPassword(passwordEncoder.encodePassword("petugas123"));
+        }
+        ptg.setNoTelp(cleanTelp);
         ptg.setAlamat(alamat);
         ptg.setKapasitasMaksimal(kapasitasMaksimal != null && kapasitasMaksimal > 0 ? kapasitasMaksimal : 200.0);
         ptg.setRole((role != null && !role.isBlank()) ? role.toUpperCase() : "PETUGAS");
@@ -1162,14 +1175,14 @@ public class JelantaraService {
                                     String kategoriPenjual, String alamat, String metodePembayaran,
                                     String namaPenyedia, String noRekening, String passwordBaru, MultipartFile fileFoto) {
         Penjual p = getPenjualAktif(penjualId);
-        if (namaPenjual != null && !namaPenjual.isBlank()) p.setNamaPenjual(namaPenjual.trim());
-        if (email != null && !email.isBlank()) p.setEmail(email.trim());
-        if (noHp != null && !noHp.isBlank()) p.setNoHp(noHp.trim());
+        p.setNamaPenjual(InputValidator.validateNotBlank(namaPenjual, "Nama lengkap"));
+        p.setEmail(InputValidator.validateEmail(email));
+        p.setNoHp(InputValidator.validatePhone(noHp, "Nomor HP / WhatsApp"));
         if (kategoriPenjual != null && !kategoriPenjual.isBlank()) p.setKategoriPenjual(kategoriPenjual);
-        if (alamat != null && !alamat.isBlank()) p.setAlamat(alamat.trim());
+        p.setAlamat(InputValidator.validateNotBlank(alamat, "Alamat utama"));
         if (metodePembayaran != null && !metodePembayaran.isBlank()) p.setMetodePembayaran(metodePembayaran);
         if (namaPenyedia != null && !namaPenyedia.isBlank()) p.setNamaPenyedia(namaPenyedia);
-        if (noRekening != null) p.setNoRekening(noRekening.trim());
+        p.setNoRekening(InputValidator.validateRekening(noRekening));
         if (passwordBaru != null && !passwordBaru.isBlank()) p.setPassword(passwordEncoder.encodePassword(passwordBaru));
         String base64Foto = convertFileToBase64(fileFoto);
         if (base64Foto != null) p.setFotoProfil(base64Foto);
@@ -1181,10 +1194,10 @@ public class JelantaraService {
     public void updateProfilPetugas(Long petugasId, String namaPetugas, String email, String noTelp,
                                     String alamat, String passwordBaru) {
         Petugas ptg = getPetugasAktif(petugasId);
-        if (namaPetugas != null && !namaPetugas.isBlank()) ptg.setNamaPetugas(namaPetugas.trim());
-        if (email != null && !email.isBlank()) ptg.setEmail(email.trim());
-        if (noTelp != null && !noTelp.isBlank()) ptg.setNoTelp(noTelp.trim());
-        if (alamat != null && !alamat.isBlank()) ptg.setAlamat(alamat.trim());
+        ptg.setNamaPetugas(InputValidator.validateNotBlank(namaPetugas, "Nama lengkap petugas"));
+        ptg.setEmail(InputValidator.validateEmail(email));
+        ptg.setNoTelp(InputValidator.validatePhone(noTelp, "Nomor telepon petugas"));
+        ptg.setAlamat(InputValidator.validateNotBlank(alamat, "Alamat domisili"));
         if (passwordBaru != null && !passwordBaru.isBlank()) ptg.setPassword(passwordEncoder.encodePassword(passwordBaru));
         petugasRepo.save(ptg);
     }
@@ -1194,11 +1207,11 @@ public class JelantaraService {
     public void updateProfilPusat(String namaGudang, String namaAdmin, String email, String noTelepon,
                                   String alamat, String passwordBaru) {
         Pusat pst = getPusatAktif();
-        if (namaGudang != null && !namaGudang.isBlank()) pst.setNamaGudang(namaGudang.trim());
-        if (namaAdmin != null && !namaAdmin.isBlank()) pst.setNama(namaAdmin.trim());
-        if (email != null && !email.isBlank()) pst.setEmail(email.trim());
-        if (noTelepon != null && !noTelepon.isBlank()) pst.setNoTelepon(noTelepon.trim());
-        if (alamat != null && !alamat.isBlank()) pst.setAlamat(alamat.trim());
+        pst.setNamaGudang(InputValidator.validateNotBlank(namaGudang, "Nama gudang"));
+        pst.setNama(InputValidator.validateNotBlank(namaAdmin, "Nama penanggung jawab"));
+        pst.setEmail(InputValidator.validateEmail(email));
+        pst.setNoTelepon(InputValidator.validatePhone(noTelepon, "Nomor telepon gudang"));
+        pst.setAlamat(InputValidator.validateNotBlank(alamat, "Alamat gudang"));
         if (passwordBaru != null && !passwordBaru.isBlank()) pst.setPassword(passwordEncoder.encodePassword(passwordBaru));
         pusatRepo.save(pst);
     }

@@ -744,7 +744,115 @@ function toggleProfilEdit(viewId, formId, btnId) {
     } else {
         formEl.classList.add("d-none");
         if (viewEl) viewEl.classList.remove("d-none");
-        if (btnEl) btnEl.innerHTML = '<i data-lucide="edit-3" style="width:15px;height:15px;"></i> Edit Profil';
+        if (btnEl)         btnEl.innerHTML = '<i data-lucide="edit-3" style="width:15px;height:15px;"></i> Edit Profil';
     }
     if (window.lucide) lucide.createIcons();
 }
+
+function tampilkanSwalError(judul, pesan, focusEl) {
+    if (typeof Swal !== "undefined") {
+        Swal.fire({
+            icon: 'error',
+            title: judul || 'Input Tidak Valid',
+            text: pesan,
+            confirmButtonText: 'Perbaiki',
+            confirmButtonColor: '#FFCA00',
+            customClass: { confirmButton: 'text-dark fw-bold rounded-pill px-4' }
+        }).then(() => {
+            if (focusEl && typeof focusEl.focus === 'function') {
+                focusEl.focus();
+            }
+        });
+    }
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const emailDomainRegex = /^[A-Za-z0-9._%+-]+@(gmail\.com|mail\.com)$/i;
+    const phoneRegex = /^[0-9]{10,15}$/;
+    const rekeningRegex = /^[0-9]{5,25}$/;
+
+    document.querySelectorAll("form").forEach(function (form) {
+        if ((form.getAttribute("method") || "get").toLowerCase() !== "post") return;
+        if (form.id === "googleJwtForm") return;
+
+        form.setAttribute("novalidate", "novalidate");
+
+        form.addEventListener("submit", function (e) {
+            const inputs = form.querySelectorAll("input, select, textarea");
+            for (let i = 0; i < inputs.length; i++) {
+                const el = inputs[i];
+                if (el.disabled || el.type === "hidden" || el.offsetParent === null) continue;
+
+                const name = el.getAttribute("name") || "";
+                const type = (el.getAttribute("type") || "").toLowerCase();
+                const val = (el.value || "").trim();
+
+                if (el.hasAttribute("required") && val === "") {
+                    e.preventDefault();
+                    tampilkanSwalError("Data Belum Lengkap", "Pastikan seluruh kolom wajib telah diisi dengan benar.", el);
+                    return;
+                }
+
+                if ((type === "email" || name === "email" || name === "googleEmail") && val !== "") {
+                    if (!emailDomainRegex.test(val)) {
+                        e.preventDefault();
+                        tampilkanSwalError("Format Email Tidak Valid", "Email wajib menggunakan domain @gmail.com atau @mail.com (contoh: nama@gmail.com).", el);
+                        return;
+                    }
+                }
+
+                if ((type === "tel" || name === "noHp" || name === "noTelp" || name === "noTelepon") && val !== "") {
+                    if (!phoneRegex.test(val)) {
+                        e.preventDefault();
+                        tampilkanSwalError("Nomor Telepon Tidak Valid", "Nomor telepon / HP hanya boleh berisi angka (10-15 digit) dan tidak boleh mengandung huruf atau simbol.", el);
+                        return;
+                    }
+                }
+
+                if ((name === "noRekening" || name === "noRekeningTujuan") && val !== "") {
+                    if (!rekeningRegex.test(val)) {
+                        e.preventDefault();
+                        tampilkanSwalError("Nomor Rekening Tidak Valid", "Nomor rekening / E-Wallet hanya boleh berisi angka (5-25 digit) dan tidak boleh mengandung huruf.", el);
+                        return;
+                    }
+                }
+
+                if ((name === "jumlahMinyak" || name === "jumlahMinyakAktual") && val !== "") {
+                    const num = parseFloat(val);
+                    if (isNaN(num) || num < 15) {
+                        e.preventDefault();
+                        tampilkanSwalError("Jumlah Minyak Tidak Valid", "Minimal penyetoran minyak jelantah adalah 15 Liter.", el);
+                        return;
+                    }
+                }
+
+                if ((name === "qtyList" || name === "qty") && val !== "") {
+                    const num = parseInt(val, 10);
+                    if (isNaN(num) || num < 1) {
+                        e.preventDefault();
+                        tampilkanSwalError("Jumlah Unit Tidak Valid", "Jumlah unit (Qty) harus berupa angka minimal 1.", el);
+                        return;
+                    }
+                }
+
+                if (name === "hargaPoin" && val !== "") {
+                    const num = parseFloat(val);
+                    if (isNaN(num) || num < 1) {
+                        e.preventDefault();
+                        tampilkanSwalError("Harga Poin Tidak Valid", "Harga poin produk harus berupa angka minimal 1.", el);
+                        return;
+                    }
+                }
+
+                if (name === "stok" && val !== "") {
+                    const num = parseInt(val, 10);
+                    if (isNaN(num) || num < 0) {
+                        e.preventDefault();
+                        tampilkanSwalError("Stok Tidak Valid", "Stok produk tidak boleh bernilai negatif.", el);
+                        return;
+                    }
+                }
+            }
+        });
+    });
+});
