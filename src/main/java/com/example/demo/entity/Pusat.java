@@ -33,6 +33,9 @@ public class Pusat {
 
     private String alamat;
 
+    @Column(name = "no_whatsapp_cs")
+    private String noWhatsappCs;
+
     @Column(nullable = false)
     private String role = "PUSAT";
 
@@ -50,6 +53,8 @@ public class Pusat {
     public void setNoTelepon(String noTelepon) { this.noTelepon = noTelepon; }
     public String getAlamat() { return alamat; }
     public void setAlamat(String alamat) { this.alamat = alamat; }
+    public String getNoWhatsappCs() { return noWhatsappCs; }
+    public void setNoWhatsappCs(String noWhatsappCs) { this.noWhatsappCs = noWhatsappCs; }
     public String getRole() { return role; }
     public void setRole(String role) { this.role = role; }
 }

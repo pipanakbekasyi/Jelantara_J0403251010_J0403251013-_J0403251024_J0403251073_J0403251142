@@ -179,6 +179,16 @@ public class AuthController {
 
             JelantaraService.GoogleAuthResult result = service.authenticateOrRegisterGoogle(email, nama, googleId, picture);
             rateLimiter.resetAttempts(rateKey);
+            if (result.pending() != null) {
+                // Akun Google baru: belum login & belum tersimpan sampai form lengkapi profil disubmit
+                session.removeAttribute("userId");
+                session.removeAttribute("userName");
+                session.removeAttribute("userEmail");
+                session.removeAttribute("userRole");
+                session.setAttribute("pendingGoogle", result.pending());
+                ra.addFlashAttribute("flashSuccess", "Akun Google terverifikasi! Lengkapi data berikut untuk menyelesaikan pendaftaran.");
+                return "redirect:/auth/lengkapi-profil-penjual";
+            }
             return buatSesiDanRedirect(result.session(), result.perluLengkapiProfil(), session, ra);
         } catch (Exception e) {
             ra.addFlashAttribute("flashError", "Login Google gagal: " + e.getMessage());
@@ -207,6 +217,14 @@ public class AuthController {
             ra.addFlashAttribute("flashSuccess", "Selamat datang kembali, " + user.nama() + "!");
             return "redirect:/check-it-now";
         }
+    }
+
+    // Membatalkan pendaftaran Google yang belum selesai (tombol Batal / tombol Back)
+    @GetMapping("/auth/google/batal")
+    public String batalDaftarGoogle(HttpSession session, RedirectAttributes ra) {
+        session.removeAttribute("pendingGoogle");
+        ra.addFlashAttribute("flashError", "Pendaftaran dengan akun Google dibatalkan. Akun Anda tidak didaftarkan.");
+        return "redirect:/login";
     }
 
     @GetMapping("/logout")
@@ -267,6 +285,15 @@ public class AuthController {
 
     @GetMapping("/auth/lengkapi-profil-penjual")
     public String lengkapiProfilPenjualPage(HttpSession session, Model model) {
+        Object pending = session.getAttribute("pendingGoogle");
+        if (pending instanceof JelantaraService.GooglePending g) {
+            Penjual draft = new Penjual();          // objek sementara untuk tampilan, TIDAK disimpan
+            draft.setNamaPenjual(g.nama());
+            draft.setEmail(g.email());
+            model.addAttribute("penjual", draft);
+            model.addAttribute("modeGoogleBaru", true);
+            return "auth/lengkapi-profil-penjual";
+        }
         String role = (String) session.getAttribute("userRole");
         if (!"PENJUAL".equalsIgnoreCase(role)) return "redirect:/login";
         Long userId = (Long) session.getAttribute("userId");
@@ -282,6 +309,26 @@ public class AuthController {
                                               @RequestParam String alamat,
                                               @RequestParam(required = false) String noHp,
                                               HttpSession session, RedirectAttributes ra) {
+        Object pending = session.getAttribute("pendingGoogle");
+        if (pending instanceof JelantaraService.GooglePending g) {
+            try {
+                JelantaraService.AuthSession baru = service.registerPenjualGoogle(g, kategoriPenjual,
+                        metodePembayaran, namaPenyedia, noRekening, alamat, noHp);
+                session.removeAttribute("pendingGoogle");
+                session.setAttribute("userId", baru.id());
+                session.setAttribute("userName", baru.nama());
+                session.setAttribute("userEmail", baru.email());
+                session.setAttribute("userRole", baru.role());
+                ra.addFlashAttribute("flashSuccess", "Pendaftaran dengan akun Google berhasil! Kini Anda dapat mulai bertransaksi.");
+                return "redirect:/check-it-now";
+            } catch (IllegalArgumentException e) {
+                ra.addFlashAttribute("flashError", e.getMessage());
+                return "redirect:/auth/lengkapi-profil-penjual";
+            } catch (Exception e) {
+                ra.addFlashAttribute("flashError", "Gagal menyimpan profil: Nomor HP mungkin sudah terdaftar pada akun lain.");
+                return "redirect:/auth/lengkapi-profil-penjual";
+            }
+        }
         String role = (String) session.getAttribute("userRole");
         if (!"PENJUAL".equalsIgnoreCase(role)) return "redirect:/login";
         Long userId = (Long) session.getAttribute("userId");

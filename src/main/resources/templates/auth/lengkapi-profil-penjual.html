@@ -120,6 +120,15 @@
                             <span>Simpan Profil &amp; Masuk ke Dashboard</span>
                         </button>
                     </form>
+                    <a th:if="${modeGoogleBaru}" th:href="@{/auth/google/batal}"
+                       class="btn-jlt-outline w-100 py-2 mt-2 d-flex justify-content-center align-items-center gap-2 text-decoration-none">
+                        <i data-lucide="x-circle" style="width: 18px; height: 18px;"></i>
+                        <span>Batal Daftar dengan Google</span>
+                    </a>
+                    <script>
+                        // Jika halaman dibuka ulang dari cache tombol Back/Forward, muat ulang agar status sesi selalu terbaru
+                        window.addEventListener('pageshow', function (e) { if (e.persisted) window.location.reload(); });
+                    </script>
                 </div>
             </div>
         </div>

@@ -856,3 +856,39 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 });
+
+
+// =========================================================================
+// Konfirmasi aksi memakai SweetAlert (pengganti confirm() bawaan browser).
+// Pakai atribut data-confirm="Pesan..." pada <form> atau pada tombol submit.
+// =========================================================================
+document.addEventListener("submit", function (e) {
+    const form = e.target;
+    const submitter = e.submitter || null;
+    const pesan = (submitter && submitter.dataset.confirm) || form.dataset.confirm;
+    if (!pesan) return;
+    if (form.dataset.confirmed === "1") { delete form.dataset.confirmed; return; }
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    if (typeof Swal === "undefined") {
+        if (window.confirm(pesan)) { form.dataset.confirmed = "1"; submitter ? form.requestSubmit(submitter) : form.submit(); }
+        return;
+    }
+    Swal.fire({
+        icon: 'warning',
+        title: 'Konfirmasi',
+        text: pesan,
+        showCancelButton: true,
+        confirmButtonText: 'Ya, Lanjutkan',
+        cancelButtonText: 'Batal',
+        reverseButtons: true,
+        confirmButtonColor: '#FFCA00',
+        cancelButtonColor: '#6c757d',
+        customClass: { confirmButton: 'text-dark fw-bold rounded-pill px-4', cancelButton: 'rounded-pill px-4' }
+    }).then(function (hasil) {
+        if (hasil.isConfirmed) {
+            form.dataset.confirmed = "1";
+            submitter ? form.requestSubmit(submitter) : form.submit();
+        }
+    });
+}, true);

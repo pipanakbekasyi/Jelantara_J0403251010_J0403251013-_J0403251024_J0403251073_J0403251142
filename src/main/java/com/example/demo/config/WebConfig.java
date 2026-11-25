@@ -42,6 +42,18 @@ public class WebConfig implements WebMvcConfigurer {
                 String uri = request.getRequestURI();
                 String method = request.getMethod();
 
+                // Pendaftaran Google yang belum selesai otomatis batal jika pengguna meninggalkan
+                // halaman lengkapi profil (misalnya menekan tombol Back) -> tidak ada sesi login.
+                HttpSession cekSession = request.getSession(false);
+                if (cekSession != null && cekSession.getAttribute("pendingGoogle") != null
+                        && !uri.startsWith("/auth/lengkapi-profil-penjual")
+                        && !uri.startsWith("/auth/google")
+                        && !uri.startsWith("/css/") && !uri.startsWith("/js/")
+                        && !uri.startsWith("/images/") && !uri.startsWith("/img/") && !uri.startsWith("/uploads/")
+                        && !uri.equals("/favicon.ico") && !uri.equals("/error")) {
+                    cekSession.removeAttribute("pendingGoogle");
+                }
+
                 // Proteksi REST JSON API (/api/**)
                 if (uri.startsWith("/api/")) {
                     boolean publik = uri.equals("/api/auth/login")

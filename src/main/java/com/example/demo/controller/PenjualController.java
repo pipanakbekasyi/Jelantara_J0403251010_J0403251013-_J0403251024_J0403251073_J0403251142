@@ -120,6 +120,7 @@ public class PenjualController {
         Penjual penjual = service.getPenjualAktif((Long) session.getAttribute("userId"));
         model.addAttribute("userRole", "PENJUAL");
         model.addAttribute("penjual", penjual);
+        model.addAttribute("linkCustomerService", service.getLinkCustomerService());
         model.addAttribute("unreadNotif", service.getUnreadNotifCount("PENJUAL", penjual.getIdPenjual()));
         return "dashboard/profile";
     }

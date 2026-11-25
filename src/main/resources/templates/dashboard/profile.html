@@ -59,6 +59,15 @@
                             <strong th:text="${penjual.alamat}">Jl. Melati No. 10, Bogor</strong>
                         </div>
                     </div>
+
+                    <a th:if="${linkCustomerService != null}" th:href="${linkCustomerService}" target="_blank" rel="noopener"
+                       class="btn w-100 mt-3 d-flex justify-content-center align-items-center gap-2 fw-semibold rounded-pill"
+                       style="background:#25D366;color:#fff;">
+                        <i data-lucide="message-circle" style="width:18px;height:18px;"></i> Customer Service (WhatsApp)
+                    </a>
+                    <small th:if="${linkCustomerService == null}" class="d-block text-secondary mt-3">
+                        Customer Service belum tersedia.
+                    </small>
                 </div>
             </div>
 

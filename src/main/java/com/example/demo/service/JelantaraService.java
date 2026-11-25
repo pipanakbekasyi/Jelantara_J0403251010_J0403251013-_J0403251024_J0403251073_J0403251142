@@ -1205,13 +1205,15 @@ public class JelantaraService {
     // Update Profil Pusat
     @Transactional
     public void updateProfilPusat(String namaGudang, String namaAdmin, String email, String noTelepon,
-                                  String alamat, String passwordBaru) {
+                                  String alamat, String noWhatsappCs, String passwordBaru) {
         Pusat pst = getPusatAktif();
         pst.setNamaGudang(InputValidator.validateNotBlank(namaGudang, "Nama gudang"));
         pst.setNama(InputValidator.validateNotBlank(namaAdmin, "Nama penanggung jawab"));
         pst.setEmail(InputValidator.validateEmail(email));
         pst.setNoTelepon(InputValidator.validatePhone(noTelepon, "Nomor telepon gudang"));
         pst.setAlamat(InputValidator.validateNotBlank(alamat, "Alamat gudang"));
+        pst.setNoWhatsappCs((noWhatsappCs == null || noWhatsappCs.isBlank())
+                ? null : InputValidator.validatePhone(noWhatsappCs, "Nomor WhatsApp Customer Service"));
         if (passwordBaru != null && !passwordBaru.isBlank()) pst.setPassword(passwordEncoder.encodePassword(passwordBaru));
         pusatRepo.save(pst);
     }
@@ -1338,7 +1340,54 @@ public class JelantaraService {
     // =========================================================================
     // AUTENTIKASI / AUTO-REGISTER AKUN GOOGLE (OAUTH2 / GOOGLE IDENTITY)
     // =========================================================================
-    public record GoogleAuthResult(AuthSession session, boolean perluLengkapiProfil) {}
+    public record GoogleAuthResult(AuthSession session, boolean perluLengkapiProfil, GooglePending pending) {}
+
+    // Data akun Google yang BELUM terdaftar. Hanya disimpan di session (tidak ke database)
+    // sampai pengguna menyelesaikan form "Lengkapi Profil". Jika form dibatalkan / ditinggalkan,
+    // data ini dibuang sehingga akun tidak pernah tercatat.
+    public record GooglePending(String email, String nama, String googleId, String pictureUrl) implements java.io.Serializable {}
+
+    // Link WhatsApp Customer Service (wa.me) berdasarkan nomor yang diatur Pusat; null jika belum diatur
+    public String getLinkCustomerService() {
+        Pusat pst;
+        try { pst = getPusatAktif(); } catch (Exception e) { return null; }
+        if (pst == null || pst.getNoWhatsappCs() == null || pst.getNoWhatsappCs().isBlank()) return null;
+        String digit = pst.getNoWhatsappCs().replaceAll("[^0-9]", "");
+        if (digit.startsWith("0")) digit = "62" + digit.substring(1);
+        String pesan = java.net.URLEncoder.encode("Halo Customer Service Jelantara, saya ingin bertanya.", java.nio.charset.StandardCharsets.UTF_8);
+        return "https://wa.me/" + digit + "?text=" + pesan;
+    }
+
+    // Membuat akun penjual dari data Google SETELAH form lengkapi profil disubmit
+    @Transactional
+    public AuthSession registerPenjualGoogle(GooglePending g, String kategoriPenjual, String metodePembayaran,
+                                             String namaPenyedia, String noRekening, String alamat, String noHp) {
+        if (penjualRepo.findByEmail(g.email()).isPresent()) {
+            throw new IllegalArgumentException("Email " + g.email() + " sudah terdaftar. Silakan login kembali.");
+        }
+        Penjual baru = new Penjual();
+        baru.setNamaPenjual(g.nama());
+        baru.setEmail(g.email());
+        baru.setPassword(passwordEncoder.generateGooglePlaceholderPassword());
+        baru.setGoogleId(g.googleId());
+        baru.setAuthProvider("GOOGLE");
+        baru.setFotoProfil(g.pictureUrl());
+        baru.setPoin(0);
+        baru.setRole("PENJUAL");
+        baru.setKategoriPenjual(kategoriPenjual);
+        baru.setMetodePembayaran(metodePembayaran);
+        baru.setNamaPenyedia(namaPenyedia);
+        baru.setNoRekening(InputValidator.validateRekening(noRekening));
+        baru.setAlamat(InputValidator.validateNotBlank(alamat, "Alamat lengkap"));
+        if (noHp != null && !noHp.isBlank()) {
+            baru.setNoHp(InputValidator.validatePhone(noHp, "Nomor HP / WhatsApp"));
+        }
+        Penjual tersimpan = penjualRepo.save(baru);
+        buatNotifikasi("Selamat Bergabung via Google!",
+                "Akun penjual " + tersimpan.getNamaPenjual() + " berhasil didaftarkan menggunakan akun Google.",
+                "REGISTRASI", tersimpan.getIdPenjual(), null, 1L);
+        return new AuthSession(tersimpan.getIdPenjual(), tersimpan.getNamaPenjual(), tersimpan.getEmail(), "PENJUAL");
+    }
 
     @Transactional
     public GoogleAuthResult authenticateOrRegisterGoogle(String email, String nama, String googleId, String pictureUrl) {
@@ -1351,7 +1400,7 @@ public class JelantaraService {
         Optional<Pusat> optPusat = pusatRepo.findByEmail(cleanEmail);
         if (optPusat.isPresent()) {
             Pusat p = optPusat.get();
-            return new GoogleAuthResult(new AuthSession(p.getIdPusat(), p.getNamaGudang(), p.getEmail(), "PUSAT"), false);
+            return new GoogleAuthResult(new AuthSession(p.getIdPusat(), p.getNamaGudang(), p.getEmail(), "PUSAT"), false, null);
         }
 
         // 2. Cek apakah email terdaftar sebagai PETUGAS aktif
@@ -1361,7 +1410,7 @@ public class JelantaraService {
             if ("NONAKTIF".equalsIgnoreCase(pt.getRole())) {
                 throw new IllegalStateException("Akses akun petugas Anda sedang dinonaktifkan oleh Pusat.");
             }
-            return new GoogleAuthResult(new AuthSession(pt.getIdPetugas(), pt.getNamaPetugas(), pt.getEmail(), "PETUGAS"), false);
+            return new GoogleAuthResult(new AuthSession(pt.getIdPetugas(), pt.getNamaPetugas(), pt.getEmail(), "PETUGAS"), false, null);
         }
 
         // 3. Cek apakah sudah terdaftar sebagai PENJUAL (berdasarkan googleId atau email)
@@ -1383,26 +1432,13 @@ public class JelantaraService {
             }
             penjualRepo.save(pj);
             boolean belumLengkap = (pj.getAlamat() == null || pj.getAlamat().isBlank() || pj.getNoRekening() == null || pj.getNoRekening().isBlank());
-            return new GoogleAuthResult(new AuthSession(pj.getIdPenjual(), pj.getNamaPenjual(), pj.getEmail(), "PENJUAL"), belumLengkap);
+            return new GoogleAuthResult(new AuthSession(pj.getIdPenjual(), pj.getNamaPenjual(), pj.getEmail(), "PENJUAL"), belumLengkap, null);
         }
 
-        // 4. Auto-register PENJUAL baru menggunakan akun Google
-        Penjual baru = new Penjual();
-        baru.setNamaPenjual((nama != null && !nama.isBlank()) ? nama.trim() : cleanEmail.split("@")[0]);
-        baru.setEmail(cleanEmail);
-        baru.setPassword(passwordEncoder.generateGooglePlaceholderPassword());
-        baru.setGoogleId(googleId);
-        baru.setAuthProvider("GOOGLE");
-        baru.setFotoProfil(pictureUrl);
-        baru.setPoin(0);
-        baru.setRole("PENJUAL");
-        Penjual tersimpan = penjualRepo.save(baru);
-
-        buatNotifikasi("Selamat Bergabung via Google!",
-                "Akun penjual " + tersimpan.getNamaPenjual() + " berhasil didaftarkan menggunakan akun Google. Silakan lengkapi profil Anda.",
-                "REGISTRASI", tersimpan.getIdPenjual(), null, 1L);
-
-        return new GoogleAuthResult(new AuthSession(tersimpan.getIdPenjual(), tersimpan.getNamaPenjual(), tersimpan.getEmail(), "PENJUAL"), true);
+        // 4. Email Google belum terdaftar: JANGAN simpan ke database dulu.
+        //    Akun baru dibuat di registerPenjualGoogle() setelah form lengkapi profil disubmit.
+        String namaAwal = (nama != null && !nama.isBlank()) ? nama.trim() : cleanEmail.split("@")[0];
+        return new GoogleAuthResult(null, true, new GooglePending(cleanEmail, namaAwal, googleId, pictureUrl));
     }
 
 }

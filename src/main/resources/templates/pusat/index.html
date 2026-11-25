@@ -146,7 +146,7 @@
                                     </div>
                                     <form th:action="@{/pusat/reset-tangki}" method="post">
                                         <button type="submit" class="btn-jlt-primary btn-sm w-100"
-                                                onclick="return confirm('Kirim stok minyak keluar & kosongkan tangki penampungan menjadi 0 Liter?')">
+                                                data-confirm="Kirim stok minyak keluar & kosongkan tangki penampungan menjadi 0 Liter?">
                                             <i data-lucide="truck" style="width:16px;height:16px;"></i> Kosongkan Tangki Penampungan
                                         </button>
                                     </form>
@@ -347,7 +347,7 @@
                                         <i data-lucide="edit-3" style="width:14px;height:14px;"></i> Edit Produk
                                     </button>
                                     <form th:action="@{/pusat/produk/delete}" method="post" class="flex-grow-1"
-                                          onsubmit="return confirm('Hapus produk olahan ini dari katalog?');">
+                                          data-confirm="Hapus produk olahan ini dari katalog?">
                                         <input type="hidden" name="idProduk" th:value="${pr.idProduk}">
                                         <button type="submit" class="btn-jlt-outline btn-sm w-100 text-danger border-danger">
                                             <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Hapus
@@ -452,7 +452,7 @@
                                         Update Status + Bukti Foto
                                     </button>
                                     <form th:if="${rd.status != 'Dibatalkan' and rd.status != 'Selesai'}" th:action="@{/pusat/penukaran/batal}" method="post"
-                                          onsubmit="return confirm('Apakah Anda yakin ingin membatalkan redeem ini? Poin dan stok produk akan dikembalikan.');">
+                                          data-confirm="Apakah Anda yakin ingin membatalkan redeem ini? Poin dan stok produk akan dikembalikan.">
                                         <input type="hidden" name="idPenukaran" th:value="${rd.idPenukaran}">
                                         <button type="submit" class="btn-jlt-outline btn-sm text-danger border-danger">Batalkan</button>
                                     </form>
@@ -588,12 +588,12 @@
                                     <form th:action="@{/pusat/petugas/reset-beban}" method="post" class="d-inline">
                                         <input type="hidden" name="idPetugas" th:value="${ptg.idPetugas}">
                                         <button type="submit" class="btn-jlt-outline btn-sm px-3"
-                                                onclick="return confirm('Reset beban angkut & kembalikan status petugas menjadi Tersedia?')">
+                                                data-confirm="Reset beban angkut & kembalikan status petugas menjadi Tersedia?">
                                             Reset
                                         </button>
                                     </form>
                                     <form th:action="@{/pusat/petugas/hapus}" method="post" class="d-inline"
-                                          onsubmit="return confirm('Hapus akun petugas ini secara permanen?')">
+                                          data-confirm="Hapus akun petugas ini secara permanen?">
                                         <input type="hidden" name="idPetugas" th:value="${ptg.idPetugas}">
                                         <button type="submit" class="btn-jlt-outline btn-sm px-3 text-danger border-danger">
                                             <i data-lucide="trash-2" style="width:14px;height:14px;"></i> Hapus
@@ -677,6 +677,7 @@
                                 <div class="col-md-6"><div class="p-3 rounded-4 border bg-light"><small class="text-secondary d-block">Email Login</small><strong th:text="${pusat.email}">-</strong></div></div>
                                 <div class="col-md-6"><div class="p-3 rounded-4 border bg-light"><small class="text-secondary d-block">No. Telepon</small><strong th:text="${pusat.noTelepon}">-</strong></div></div>
                                 <div class="col-12"><div class="p-3 rounded-4 border bg-light"><small class="text-secondary d-block">Alamat Gudang</small><strong th:text="${pusat.alamat}">-</strong></div></div>
+                                <div class="col-md-6"><div class="p-3 rounded-4 border bg-light"><small class="text-secondary d-block">WhatsApp Customer Service</small><strong th:text="${pusat.noWhatsappCs != null and !#strings.isEmpty(pusat.noWhatsappCs) ? pusat.noWhatsappCs : 'Belum diatur'}">-</strong></div></div>
                             </div>
 
                             <form id="formProfilPusat" th:action="@{/pusat/profile/update}" method="post" class="row g-3 d-none">
@@ -699,6 +700,12 @@
                                 <div class="col-12">
                                     <label class="form-label fw-semibold small">Alamat Lengkap Gudang <span class="text-danger">*</span></label>
                                     <textarea name="alamat" rows="2" class="form-control" required th:text="${pusat.alamat}"></textarea>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold small">Nomor WhatsApp Customer Service</label>
+                                    <input type="tel" name="noWhatsappCs" class="form-control" th:value="${pusat.noWhatsappCs}"
+                                           placeholder="Contoh: 081234567890">
+                                    <small class="text-secondary">Ditampilkan sebagai tombol Customer Service di halaman profil Penjual.</small>
                                 </div>
                                 <div class="col-12">
                                     <label class="form-label fw-semibold small">Password Baru (Kosongkan jika tidak diubah)</label>

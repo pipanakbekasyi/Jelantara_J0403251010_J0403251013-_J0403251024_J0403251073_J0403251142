@@ -253,11 +253,12 @@ public class PusatController {
                                     @RequestParam String email,
                                     @RequestParam String noTelepon,
                                     @RequestParam String alamat,
+                                    @RequestParam(required = false) String noWhatsappCs,
                                     @RequestParam(required = false) String passwordBaru,
                                     HttpSession session, RedirectAttributes ra) {
         if (!isPusat(session)) return "redirect:/login";
         try {
-            service.updateProfilPusat(namaGudang, nama, email, noTelepon, alamat, passwordBaru);
+            service.updateProfilPusat(namaGudang, nama, email, noTelepon, alamat, noWhatsappCs, passwordBaru);
             session.setAttribute("userName", namaGudang);
             ra.addFlashAttribute("flashSuccess", "Profil Gudang Pusat berhasil diperbarui!");
         } catch (Exception e) {
